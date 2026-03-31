@@ -222,8 +222,13 @@ signupForm.addEventListener('submit', async (event) => {
     }, 900);
   }
 });
-
-// Forgot Password Modal
+// ========== FORGOT PASSWORD FEATURE - DISABLED FOR NOW ==========
+// Email service (SendGrid) needs configuration. To re-enable:
+// 1. Ensure SENDGRID_API_KEY is properly configured in Render
+// 2. Verify SendGrid sender identity is verified
+// 3. Uncomment the code below and the forgot password button in index.html
+// ================================================================
+/*
 const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
 const forgotPasswordModal = document.getElementById('forgotPasswordModal');
 const closeForgotPasswordModal = document.getElementById('closeForgotPasswordModal');
@@ -328,6 +333,8 @@ forgotPasswordForm.addEventListener('submit', async (event) => {
     submitBtn.disabled = false;
   }
 });
+*/
+// ================================================================
 
 // Check auth state on page load
 const sessionUser = sessionStorage.getItem('app_session_user');
