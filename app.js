@@ -301,13 +301,8 @@ forgotPasswordForm.addEventListener('submit', async (event) => {
       forgotPasswordMessage.className = 'modal-message success';
       forgotPasswordMessage.classList.remove('hidden');
       
-      // Clear form and close after 3 seconds
-      setTimeout(() => {
-        forgotPasswordForm.reset();
-        forgotPasswordModal.classList.add('hidden');
-        modalBackdrop.classList.add('hidden');
-        forgotPasswordMessage.classList.add('hidden');
-      }, 3000);
+      // Clear form but keep modal open for user to close
+      forgotPasswordForm.reset();
     } else {
       console.error('API returned error status:', response.status);
       console.error('Error response:', result);
