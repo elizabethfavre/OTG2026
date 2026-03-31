@@ -42,16 +42,61 @@ npx http-server
 ```
 Then visit `http://localhost:8000`
 
-### Test Accounts
+#### Test Accounts
 
-| Username | Password | Role |
-|----------|----------|------|
-| admin | admin123! | Manager |
-| mentor | mentor123! | Mentor |
-| demo | demo123! | New Team Member |
-| admin1 | admin123! | Manager |
-| mentor1 | mentor123! | Mentor |
-| new1 | new123! | New Team Member |
+The application comes with pre-configured test users in a realistic organizational hierarchy:
+- **2 Managers** leading the organization
+- **4 Mentors** (2 per manager) overseeing onboarding
+- **8 New Employees** (2 per mentor) going through onboarding
+
+#### Manager Accounts
+
+| Username | Password | Email |
+|----------|----------|-------|
+| manager_alex | MgrAlex#2026! | alex.manager@company.com |
+| manager_jordan | MgrJordan#2026! | jordan.manager@company.com |
+
+#### Mentor Accounts
+
+| Username | Password | Email | Reports To |
+|----------|----------|-------|------------|
+| mentor_casey | MentorCasey#2026! | casey.mentor@company.com | manager_alex |
+| mentor_blake | MentorBlake#2026! | blake.mentor@company.com | manager_alex |
+| mentor_drew | MentorDrew#2026! | drew.mentor@company.com | manager_jordan |
+| mentor_morgan | MentorMorgan#2026! | morgan.mentor@company.com | manager_jordan |
+
+#### Employee Accounts
+
+| Username | Password | Email | Mentor | Manager |
+|----------|----------|-------|--------|---------|
+| employee_sierra | EmpSierra#2026! | sierra.emp@company.com | mentor_casey | manager_alex |
+| employee_taylor | EmpTaylor#2026! | taylor.emp@company.com | mentor_casey | manager_alex |
+| employee_chris | EmpChris#2026! | chris.emp@company.com | mentor_blake | manager_alex |
+| employee_alex | EmpAlex#2026! | alex.emp@company.com | mentor_blake | manager_alex |
+| employee_jordan | EmpJordan#2026! | jordan.emp@company.com | mentor_drew | manager_jordan |
+| employee_casey | EmpCasey#2026! | casey.emp@company.com | mentor_drew | manager_jordan |
+| employee_blair | EmpBlair#2026! | blair.emp@company.com | mentor_morgan | manager_jordan |
+| employee_morgan | EmpMorgan#2026! | morgan.emp@company.com | mentor_morgan | manager_jordan |
+
+#### Organization Hierarchy
+
+```
+manager_alex
+├── mentor_casey
+│   ├── employee_sierra
+│   └── employee_taylor
+└── mentor_blake
+    ├── employee_chris
+    └── employee_alex
+
+manager_jordan
+├── mentor_drew
+│   ├── employee_jordan
+│   └── employee_casey
+└── mentor_morgan
+    ├── employee_blair
+    └── employee_morgan
+```
 
 ## Project Structure
 
@@ -113,7 +158,69 @@ Then visit `http://localhost:8000`
 
 ## Testing
 
-See [TESTING_CHECKLIST.md](TESTING_CHECKLIST.md) for comprehensive test scenarios covering:
+### Automated Testing
+
+The project includes automated unit and end-to-end (E2E) tests using **Jest** and **Playwright**.
+
+#### Setup Testing Environment
+
+```bash
+npm install
+```
+
+#### Run Tests
+
+```bash
+# Run all unit tests
+npm test
+
+# Run unit tests in watch mode (rerun on file changes)
+npm run test:watch
+
+# Generate coverage report
+npm run test:coverage
+
+# Run E2E tests
+npm run test:e2e
+
+# Run E2E tests with UI mode (interactive)
+npm run test:e2e:ui
+
+# Debug E2E tests
+npm run test:e2e:debug
+```
+
+#### Test Structure
+
+```
+tests/
+├── unit/                      # Unit tests
+│   ├── auth.test.js          # Authentication logic tests
+│   └── roles.test.js         # Role-based access control tests
+└── e2e/                       # End-to-end tests
+    ├── authentication.spec.js # Login/signup workflows
+    └── dashboard.spec.js      # Dashboard functionality
+```
+
+#### Test Coverage
+
+Unit tests cover:
+- User session management
+- Email and password validation
+- Role-based permissions
+- User hierarchy relationships
+- Role-specific task lists
+
+E2E tests cover:
+- Login and signup flows
+- Error handling
+- Dashboard display
+- Role-specific UI elements
+- Task management workflows
+
+### Manual Testing
+
+See [TESTING_CHECKLIST.md](TESTING_CHECKLIST.md) for manual test scenarios covering:
 - Authentication (login, signup, logout)
 - User management and hierarchies
 - Role-based access control
