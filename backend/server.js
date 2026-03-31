@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,39 +51,12 @@ try {
 const auth = admin.auth();
 const db = admin.firestore();
 
-// Email transporter configuration (using Gmail or environment variables)
-let emailTransporter;
-try {
-  if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-    // Using Gmail or compatible SMTP
-    emailTransporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      }
-    });
-  } else {
-    // Fallback: use test account (for development only)
-    console.warn('⚠️ Email configuration not found. Using test transporter.');
-    emailTransporter = nodemailer.createTestAccount().then(testAccount => {
-      return nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass
-        }
-      });
-    }).catch(err => {
-      console.error('Failed to create test email account:', err);
-      return null;
-    });
-  }
-} catch (error) {
-  console.warn('Email configuration warning:', error.message);
-  emailTransporter = null;
+// ============= EMAIL CONFIGURATION (SendGrid) =============
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('✅ SendGrid email service configured');
+} else {
+  console.warn('⚠️ SENDGRID_API_KEY not set. Email sending will be disabled.');
 }
 
 // ============= AUTH ENDPOINTS =============
@@ -364,27 +337,18 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       `;
     }
 
-    // Try to send email if transporter is available
-    if (emailTransporter) {
+    // Try to send email using SendGrid
+    if (process.env.SENDGRID_API_KEY) {
       try {
-        const mailOptions = {
-          from: process.env.EMAIL_USER || 'noreply@onboarding-tracker.com',
+        const msg = {
           to: email,
+          from: process.env.SENDGRID_FROM_EMAIL || 'noreply@onboarding-tracker.com',
           subject: emailSubject,
           html: emailHtml,
           text: emailText
         };
 
-        // Handle async test account creation if needed
-        if (typeof emailTransporter.then === 'function') {
-          const transporter = await emailTransporter;
-          if (transporter) {
-            await transporter.sendMail(mailOptions);
-          }
-        } else {
-          await emailTransporter.sendMail(mailOptions);
-        }
-
+        await sgMail.send(msg);
         console.log(`✅ Password recovery email sent to ${email}`);
       } catch (emailError) {
         console.error('Email sending error:', emailError);
@@ -392,7 +356,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
         // In production, you might want to handle this differently
       }
     } else {
-      console.warn('⚠️ Email transporter not available. Skipping email sending.');
+      console.warn('⚠️ SendGrid API key not configured. Skipping email sending.');
     }
 
     // Always return success to prevent email enumeration attacks
