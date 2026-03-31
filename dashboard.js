@@ -145,6 +145,10 @@ function getMenteesByMentor(mentorUid) {
   return allUsers.filter(u => u.role === 'new_team_member' && u.mentorId === mentorUid);
 }
 
+function getNewEmployeesManagedByManager(managerUid) {
+  return allUsers.filter(u => u.role === 'new_team_member' && u.managerId === managerUid);
+}
+
 const CUSTOM_TASKS_PREFIX = 'custom_tasks_';
 
 function getCustomTasksKey(uid) {
@@ -681,9 +685,11 @@ onAuthStateChanged(async (user) => {
       // Check if current user has permission to view this user
       const directReports = getDirectReports(currentUser.uid);
       const mentees = getMenteesByMentor(currentUser.uid);
+      const newEmployees = getNewEmployeesManagedByManager(currentUser.uid);
       const canView = 
         (currentUser.role === 'manager' && directReports.some(r => r.id === viewUid)) ||
-        (currentUser.role === 'mentor' && mentees.some(r => r.id === viewUid));
+        (currentUser.role === 'mentor' && mentees.some(r => r.id === viewUid)) ||
+        (currentUser.role === 'manager' && requestedUser.role === 'mentor' && newEmployees.some(emp => emp.mentorId === viewUid));
       
       if (canView) {
         displayUser = requestedUser;
