@@ -54,8 +54,11 @@ body {
 .header-nav ~ .container {
   padding-top: 140px;
   align-items: flex-start;
+  justify-content: flex-start;
   max-width: 100%;
   margin-top: 2rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
   flex: initial;
 }
 
@@ -64,6 +67,7 @@ body {
   grid-template-columns: 260px 1fr 340px;
   gap: 1rem;
   align-items: start;
+  width: 100%;
 }
 
 .dashboard-left,
