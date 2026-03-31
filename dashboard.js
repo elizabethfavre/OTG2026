@@ -484,9 +484,15 @@ function displayMentorTeam() {
 function displayManagerTeam() {
   if (displayUser.role !== 'manager') return;
 
+  console.log('[DEBUG] displayManagerTeam called for:', displayUser.username);
+  console.log('[DEBUG] displayUser.id:', displayUser.id);
+  console.log('[DEBUG] allUsers count:', allUsers.length);
+  
   managerTile.classList.remove('hidden');
   
   const reports = getDirectReports(displayUser.id);
+  console.log('[DEBUG] Direct reports found:', reports.length, reports.map(r => r.username));
+  
   if (reports.length === 0) {
     noManagerReports.classList.remove('hidden');
     managerTeamSections.innerHTML = '';
