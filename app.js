@@ -5,32 +5,28 @@ import {
   backendSignOut,
   getAllUsers, 
   getUsersByRole,
+  getUserByUid,
   onAuthStateChanged
 } from './backend-api.js';
 
 const loginForm = document.getElementById('loginForm');
 const loginError = document.getElementById('loginError');
 
-// No longer need to initialize Firestore - backend handles it
-
 // Track current authenticated user
 let currentUser = null;
 let allUsers = [];
 
 // Listen for auth state changes
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(async (user) => {
   if (user) {
     currentUser = user;
-    // Fetch user document from Firestore
-    const userDoc = await getUserByUid(user.uid);
-    if (userDoc) {
-      sessionStorage.setItem('app_session_user', JSON.stringify({ 
-        uid: user.uid, 
-        email: user.email, 
-        username: userDoc.username, 
-        role: userDoc.role 
-      }));
-    }
+    // User document is already in currentUser from backend
+    sessionStorage.setItem('app_session_user', JSON.stringify({ 
+      uid: user.uid, 
+      email: user.email, 
+      username: user.username, 
+      role: user.role 
+    }));
   } else {
     currentUser = null;
     sessionStorage.removeItem('app_session_user');

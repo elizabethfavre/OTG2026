@@ -646,23 +646,16 @@ tabBtns.forEach(btn => {
 });
 
 // Listen for auth state and initialize dashboard
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(async (user) => {
   if (!user) {
     // Not authenticated, redirect to login
     window.location.href = 'index.html';
     return;
   }
 
-  // Fetch current user data from Firestore
-  const userDoc = await getUserByUid(user.uid);
-  if (!userDoc) {
-    console.error('User document not found in Firestore');
-    logoutAndRedirect('User data not found. Please log in again.');
-    return;
-  }
-
-  currentUser = { ...userDoc, uid: user.uid };
-  sessionStorage.setItem('app_session_user', JSON.stringify({ uid: user.uid, email: user.email, username: userDoc.username, role: userDoc.role }));
+  // User data is already in currentUser from backend
+  currentUser = user;
+  sessionStorage.setItem('app_session_user', JSON.stringify({ uid: user.uid, email: user.email, username: user.username, role: user.role }));
 
   // Load all users for the app
   await loadAllUsersFromFirebase();
