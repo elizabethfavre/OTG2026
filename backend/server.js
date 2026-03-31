@@ -181,6 +181,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.json({
       token: customToken,
+      id: userId,
       uid: userId,
       email: userData.email,
       username: userData.username,
