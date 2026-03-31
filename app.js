@@ -1,12 +1,17 @@
-// Import Firebase functions
-import { auth, db, initializeFirestore, firebaseSignIn, firebaseSignOut, firebaseSignUp, getUserByUid, getAllUsers, getUsersByRole } from './firebase-init.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+// Import Backend API functions (secure proxy)
+import { 
+  backendSignIn, 
+  backendSignUp, 
+  backendSignOut,
+  getAllUsers, 
+  getUsersByRole,
+  onAuthStateChanged
+} from './backend-api.js';
 
 const loginForm = document.getElementById('loginForm');
 const loginError = document.getElementById('loginError');
 
-// Initialize Firestore with test data on page load
-initializeFirestore().catch(err => console.error('Failed to initialize Firestore:', err));
+// No longer need to initialize Firestore - backend handles it
 
 // Track current authenticated user
 let currentUser = null;
@@ -68,14 +73,14 @@ function suggestUsername(username) {
   return candidate;
 }
 
-// Login form submission - using Firebase Auth
+// Login form submission - using Backend API
 loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const email = loginForm.username.value.trim(); // Accept email as username
   const password = loginForm.password.value;
 
   try {
-    const result = await firebaseSignIn(email, password);
+    const result = await backendSignIn(email, password);
     if (result.success) {
       // Auth state listener will handle navigation
       setTimeout(() => {
@@ -185,8 +190,8 @@ signupForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  const result = await firebaseSignUp(email, password, username, role, managerId, mentorId);
-  console.log('FirebaseSignUp result:', result);
+  const result = await backendSignUp(email, password, username, role, managerId, mentorId);
+  console.log('Backend signup result:', result);
   signupMessage.textContent = result.message;
   signupMessage.style.color = result.success ? '#16a34a' : '#dc2626';
 

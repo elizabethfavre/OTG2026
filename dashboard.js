@@ -1,6 +1,12 @@
-// Import Firebase functions
-import { auth, db, getUserByUid, getAllUsers, getUsersByRole, firebaseSignOut } from './firebase-init.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+// Import Backend API functions (secure proxy)
+import { 
+  backendSignOut, 
+  getUserByUid, 
+  getAllUsers, 
+  getUsersByRole, 
+  onAuthStateChanged,
+  getCurrentUser
+} from './backend-api.js';
 
 const logoutBtn = document.getElementById('logoutBtn');
 const checklist = document.getElementById('checklist');
@@ -273,7 +279,7 @@ function updateChecklistSummary() {
 }
 
 function logoutAndRedirect(message) {
-  firebaseSignOut();
+  backendSignOut();
   sessionStorage.removeItem('app_session_user');
   if (message) {
     alert(message);
