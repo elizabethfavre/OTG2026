@@ -497,7 +497,13 @@ function displayManagerTeam() {
   const reports = getDirectReports(displayUser.id);
   console.log('[DEBUG] Direct reports found:', reports.length, reports.map(r => r.username));
   
-  if (reports.length === 0) {
+  // Also get mentors of new employees managed by this manager
+  const newEmployees = getNewEmployeesManagedByManager(displayUser.id);
+  const mentorsOfNewEmployees = newEmployees
+    .map(emp => allUsers.find(u => u.id === emp.mentorId))
+    .filter(m => m && m.id);
+  
+  if (reports.length === 0 && mentorsOfNewEmployees.length === 0) {
     noManagerReports.classList.remove('hidden');
     managerTeamSections.innerHTML = '';
     return;
@@ -507,14 +513,18 @@ function displayManagerTeam() {
 
   // Group by role
   const mentors = reports.filter(r => r.role === 'mentor');
-  const newMembers = reports.filter(r => r.role === 'new_team_member');
+  const directNewMembers = reports.filter(r => r.role === 'new_team_member');
+  
+  // Combine mentors (direct reports + mentors of new employees), removing duplicates
+  const allMentors = [...mentors, ...mentorsOfNewEmployees];
+  const uniqueMentors = Array.from(new Map(allMentors.map(m => [m.id, m])).values());
 
   let html = '';
 
-  if (mentors.length > 0) {
+  if (uniqueMentors.length > 0) {
     html += '<div class="team-section"><h4>Mentors</h4>';
     html += '<ul class="team-list">';
-    html += mentors.map(mentor => `
+    html += uniqueMentors.map(mentor => `
       <li>
         <div class="member-info">
           <span class="member-name">${mentor.username}</span>
@@ -526,10 +536,10 @@ function displayManagerTeam() {
     html += '</ul></div>';
   }
 
-  if (newMembers.length > 0) {
+  if (directNewMembers.length > 0) {
     html += '<div class="team-section"><h4>Team Members</h4>';
     html += '<ul class="team-list">';
-    html += newMembers.map(member => `
+    html += directNewMembers.map(member => `
       <li>
         <div class="member-info">
           <span class="member-name">${member.username}</span>
