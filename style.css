@@ -400,11 +400,11 @@ button:hover {
   background: none;
   border: none;
   color: #0D6B4F;
-  margin-left: auto;
+  display: block;
+  margin: 0.3rem auto 0;
   cursor: pointer;
   font-weight: 600;
   width: auto;
-  margin-top: 0.3rem;
   padding: 0;
 }
 .link-btn:hover {
