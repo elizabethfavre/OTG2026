@@ -517,6 +517,76 @@ app.delete('/api/admin/clear-test-employees', async (req, res) => {
   }
 });
 
+/**
+ * DELETE /api/admin/clear-test-managers
+ * Clear all manager accounts except Alice Abernathy and Bob Barker (admin use only)
+ */
+app.delete('/api/admin/clear-test-managers', async (req, res) => {
+  try {
+    const snapshot = await db.collection('users')
+      .where('role', '==', 'manager')
+      .get();
+
+    const keepManagers = ['Alice Abernathy', 'Bob Barker'];
+    const managersToDelete = snapshot.docs.filter(doc => 
+      !keepManagers.includes(doc.data().username)
+    );
+
+    const deletedCount = managersToDelete.length;
+    const deletePromises = managersToDelete.map(doc =>
+      db.collection('users').doc(doc.id).update({
+        isActive: false,
+        deletedAt: admin.firestore.FieldValue.serverTimestamp()
+      })
+    );
+
+    await Promise.all(deletePromises);
+
+    res.json({ 
+      message: `Successfully deleted ${deletedCount} manager accounts (kept Alice Abernathy and Bob Barker)`,
+      count: deletedCount
+    });
+  } catch (error) {
+    console.error('Clear test managers error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * DELETE /api/admin/clear-test-mentors
+ * Clear all mentor accounts except Charlotte Centas and Dan Dugger (admin use only)
+ */
+app.delete('/api/admin/clear-test-mentors', async (req, res) => {
+  try {
+    const snapshot = await db.collection('users')
+      .where('role', '==', 'mentor')
+      .get();
+
+    const keepMentors = ['Charlotte Centas', 'Dan Dugger'];
+    const mentorsToDelete = snapshot.docs.filter(doc => 
+      !keepMentors.includes(doc.data().username)
+    );
+
+    const deletedCount = mentorsToDelete.length;
+    const deletePromises = mentorsToDelete.map(doc =>
+      db.collection('users').doc(doc.id).update({
+        isActive: false,
+        deletedAt: admin.firestore.FieldValue.serverTimestamp()
+      })
+    );
+
+    await Promise.all(deletePromises);
+
+    res.json({ 
+      message: `Successfully deleted ${deletedCount} mentor accounts (kept Charlotte Centas and Dan Dugger)`,
+      count: deletedCount
+    });
+  } catch (error) {
+    console.error('Clear test mentors error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ============= CHECKLIST/TASKS ENDPOINTS =============
 
 /**
