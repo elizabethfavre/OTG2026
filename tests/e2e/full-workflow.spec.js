@@ -229,6 +229,165 @@ test.describe('Signup E2E Tests', () => {
       }
     }
   });
+
+  test('should signup with manager role and auto-login to dashboard', async ({ page }) => {
+    await page.goto('/index.html');
+    
+    const showSignupBtn = page.locator('#showSignup');
+    await showSignupBtn.click();
+    
+    // Use unique email to avoid conflicts
+    const timestamp = Date.now();
+    const managerEmail = `mgr_auto_${timestamp}@otg.test`;
+    
+    // Fill manager signup form
+    await page.fill('#signupUsername', `mgr_auto_${timestamp}`);
+    await page.fill('#signupEmail', managerEmail);
+    await page.fill('#signupPassword', 'password123');
+    
+    // Select manager role
+    const roleSelect = page.locator('#signupRole');
+    await roleSelect.selectOption('manager');
+    
+    // Submit signup
+    const signupSubmit = page.locator('#signupForm button[type="submit"]');
+    await signupSubmit.click();
+    
+    // Should redirect to dashboard automatically (auto-login feature)
+    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    
+    // Verify user is logged in on dashboard
+    const usernameBadge = page.locator('#usernameBadge');
+    await expect(usernameBadge).toBeVisible();
+  });
+
+  test('should signup with mentor role and auto-login to dashboard', async ({ page }) => {
+    await page.goto('/index.html');
+    
+    const showSignupBtn = page.locator('#showSignup');
+    await showSignupBtn.click();
+    
+    // Use unique email to avoid conflicts
+    const timestamp = Date.now();
+    const mentorEmail = `mtr_auto_${timestamp}@otg.test`;
+    
+    // Fill mentor signup form
+    await page.fill('#signupUsername', `mtr_auto_${timestamp}`);
+    await page.fill('#signupEmail', mentorEmail);
+    await page.fill('#signupPassword', 'password123');
+    
+    // Select mentor role
+    const roleSelect = page.locator('#signupRole');
+    await roleSelect.selectOption('mentor');
+    
+    // Manager field should be visible (required for mentor)
+    const managerSelect = page.locator('#signupManager');
+    await expect(managerSelect).toBeVisible();
+    
+    // Submit signup
+    const signupSubmit = page.locator('#signupForm button[type="submit"]');
+    await signupSubmit.click();
+    
+    // Should redirect to dashboard automatically (auto-login feature)
+    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    
+    // Verify user is logged in on dashboard
+    const usernameBadge = page.locator('#usernameBadge');
+    await expect(usernameBadge).toBeVisible();
+  });
+
+  test('should signup with new team member role and auto-login', async ({ page }) => {
+    await page.goto('/index.html');
+    
+    const showSignupBtn = page.locator('#showSignup');
+    await showSignupBtn.click();
+    
+    // Use unique email to avoid conflicts
+    const timestamp = Date.now();
+    const employeeEmail = `emp_auto_${timestamp}@otg.test`;
+    
+    // Fill new team member signup form
+    await page.fill('#signupUsername', `emp_auto_${timestamp}`);
+    await page.fill('#signupEmail', employeeEmail);
+    await page.fill('#signupPassword', 'password123');
+    
+    // Select new team member role
+    const roleSelect = page.locator('#signupRole');
+    await roleSelect.selectOption('new_team_member');
+    
+    // Mentor and manager fields should be visible
+    const mentorSelect = page.locator('#signupMentor');
+    const managerSelect = page.locator('#signupManager');
+    await expect(mentorSelect).toBeVisible();
+    await expect(managerSelect).toBeVisible();
+    
+    // Submit signup
+    const signupSubmit = page.locator('#signupForm button[type="submit"]');
+    await signupSubmit.click();
+    
+    // Should redirect to dashboard automatically (auto-login feature)
+    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    
+    // Verify user is logged in on dashboard
+    const usernameBadge = page.locator('#usernameBadge');
+    await expect(usernameBadge).toBeVisible();
+  });
+
+  test('should show password validation error on signup', async ({ page }) => {
+    await page.goto('/index.html');
+    
+    const showSignupBtn = page.locator('#showSignup');
+    await showSignupBtn.click();
+    
+    const timestamp = Date.now();
+    
+    // Fill signup form with weak password
+    await page.fill('#signupUsername', `user_${timestamp}`);
+    await page.fill('#signupEmail', `user${timestamp}@otg.test`);
+    await page.fill('#signupPassword', 'weak'); // Less than 6 characters
+    
+    const roleSelect = page.locator('#signupRole');
+    await roleSelect.selectOption('manager');
+    
+    // Submit signup
+    const signupSubmit = page.locator('#signupForm button[type="submit"]');
+    await signupSubmit.click();
+    
+    // Should show validation error, not redirect
+    const signupMessage = page.locator('#signupMessage');
+    await expect(signupMessage).toBeVisible();
+    const messageText = await signupMessage.textContent();
+    expect(messageText?.toLowerCase()).toContain('password');
+  });
+
+  test('should maintain form state when role changes', async ({ page }) => {
+    await page.goto('/index.html');
+    
+    const showSignupBtn = page.locator('#showSignup');
+    await showSignupBtn.click();
+    
+    // Fill initial form as manager
+    const username = 'testuser123';
+    const email = `${username}@otg.test`;
+    
+    await page.fill('#signupUsername', username);
+    await page.fill('#signupEmail', email);
+    await page.fill('#signupPassword', 'password123');
+    
+    // Change to new_team_member role
+    const roleSelect = page.locator('#signupRole');
+    await roleSelect.selectOption('new_team_member');
+    
+    // Verify mentor/manager fields appeared
+    const mentorSelect = page.locator('#signupMentor');
+    const managerSelect = page.locator('#signupManager');
+    await expect(mentorSelect).toBeVisible();
+    await expect(managerSelect).toBeVisible();
+    
+    // Verify form fields still have values
+    const usernameField = page.locator('#signupUsername');
+    expect(await usernameField.inputValue()).toBe(username);
+  });
 });
 
 test.describe('Cross-Role Access Control E2E Tests', () => {

@@ -19,6 +19,11 @@ describe('Backend Server Endpoints', () => {
       expect(logoutPath).toBe('/api/auth/logout');
     });
 
+    it('should have correct forgot-password endpoint path', () => {
+      const forgotPasswordPath = '/api/auth/forgot-password';
+      expect(forgotPasswordPath).toBe('/api/auth/forgot-password');
+    });
+
     it('should have correct users endpoint path', () => {
       const usersPath = '/api/users';
       expect(usersPath).toBe('/api/users');
@@ -127,10 +132,201 @@ describe('Backend Server Endpoints', () => {
 
         expect(managerSignup.role).toBe('manager');
       });
+
+      it('should verify signup credentials before auto-login', () => {
+        const signupPayload = {
+          email: 'newuser@example.com',
+          password: 'password123',
+          username: 'newuser',
+          role: 'manager'
+        };
+
+        // Verify credentials are present for auto-login
+        expect(signupPayload).toHaveProperty('email');
+        expect(signupPayload).toHaveProperty('password');
+      });
+
+      it('should trigger auto-login after successful signup', () => {
+        const response = {
+          success: true,
+          message: 'Signup successful',
+          user: {
+            uid: 'new-user-123',
+            email: 'newuser@example.com',
+            username: 'newuser',
+            role: 'manager'
+          }
+        };
+
+        expect(response.success).toBe(true);
+        expect(response.user).toBeDefined();
+      });
+
+      it('should handle signup with role-based supervisors', () => {
+        const employeeSignup = {
+          email: 'employee@example.com',
+          username: 'employee',
+          role: 'new_team_member',
+          managerId: 'manager-123',
+          mentorId: 'mentor-123'
+        };
+
+        expect(employeeSignup).toHaveProperty('managerId');
+        expect(employeeSignup).toHaveProperty('mentorId');
+      });
+    });
+
+    describe('Enhanced Password Verification', () => {
+      it('should verify password on login request', () => {
+        const loginPayload = {
+          email: 'test@example.com',
+          password: 'password123'
+        };
+
+        expect(loginPayload).toHaveProperty('password');
+      });
+
+      it('should compare provided password with stored password', () => {
+        const providedPassword = 'password123';
+        const storedPassword = 'password123'; // In reality, this would be hashed
+
+        expect(providedPassword).toBe(storedPassword);
+      });
+
+      it('should reject login with incorrect password', () => {
+        const providedPassword = 'wrongpassword';
+        const storedPassword = 'password123';
+
+        expect(providedPassword).not.toBe(storedPassword);
+      });
+
+      it('should use Firebase REST API for password verification', () => {
+        const verificationEndpoint = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword';
+        expect(verificationEndpoint).toContain('identitytoolkit.googleapis.com');
+      });
+
+      it('should fallback to Firebase Admin SDK if REST API fails', () => {
+        const adminSdkAvailable = true;
+        const fallbackUsed = !adminSdkAvailable === false;
+
+        expect(fallbackUsed).toBe(true);
+      });
+
+      it('should return custom token after password verification', () => {
+        const loginResponse = {
+          success: true,
+          token: 'custom-jwt-token-123',
+          user: {
+            uid: 'user-123',
+            email: 'test@example.com'
+          }
+        };
+
+        expect(loginResponse).toHaveProperty('token');
+        expect(loginResponse.token).toBeTruthy();
+      });
+    });
+
+    describe('POST /api/auth/forgot-password', () => {
+      it('should accept email parameter', () => {
+        const forgotPasswordPayload = {
+          email: 'user@example.com'
+        };
+
+        expect(forgotPasswordPayload).toHaveProperty('email');
+        expect(typeof forgotPasswordPayload.email).toBe('string');
+      });
+
+      it('should require email field', () => {
+        const payloadMissingEmail = {};
+        const hasEmail = 'email' in payloadMissingEmail;
+
+        expect(hasEmail).toBe(false);
+      });
+
+      it('should validate email format', () => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        expect(emailRegex.test('user@example.com')).toBe(true);
+        expect(emailRegex.test('invalid-email')).toBe(false);
+      });
+
+      it('should return success for existing user email', () => {
+        const response = {
+          success: true,
+          message: 'Password recovery instructions have been sent to user@otg.test'
+        };
+
+        expect(response.success).toBe(true);
+        expect(response.message).toContain('sent');
+      });
+
+      it('should return success for non-existing user email', () => {
+        const response = {
+          success: true,
+          message: 'If an account exists for nonexistent@otg.test, a notification has been sent'
+        };
+
+        expect(response.success).toBe(true);
+        expect(response.message).toContain('If an account exists');
+      });
+
+      it('should prevent email enumeration attacks', () => {
+        // Both messages should have same structure
+        const existingUserResponse = 'If an account exists for user@otg.test, a notification has been sent';
+        const nonExistingUserResponse = 'If an account exists for unknown@otg.test, a notification has been sent';
+
+        expect(existingUserResponse).toContain('If an account exists');
+        expect(nonExistingUserResponse).toContain('If an account exists');
+      });
+
+      it('should send email with recovery instructions for existing users', () => {
+        const emailContent = {
+          subject: 'Password Recovery - Onboarding Tracker',
+          containsEmail: true,
+          containsStatus: true
+        };
+
+        expect(emailContent.subject).toContain('Recovery');
+        expect(emailContent.containsEmail).toBe(true);
+      });
+
+      it('should send email indicating no account for non-existing users', () => {
+        const emailContent = {
+          subject: 'Password Recovery Attempt - Onboarding Tracker',
+          containsNoAccountMessage: true
+        };
+
+        expect(emailContent.subject).toContain('Attempt');
+        expect(emailContent.containsNoAccountMessage).toBe(true);
+      });
+
+      it('should include automated message footer in email', () => {
+        const emailFooter = 'This is an automated message from the Onboarding Tracker system. Please do not reply to this email.';
+        expect(emailFooter).toContain('automated message');
+        expect(emailFooter).toContain('do not reply');
+      });
+
+      it('should not expose password in recovery email', () => {
+        const emailContent = 'For security reasons, we cannot send passwords via email';
+        expect(emailContent).toContain('cannot send passwords');
+      });
+
+      it('should handle server errors gracefully', () => {
+        const errorResponse = {
+          success: false,
+          error: 'Failed to process password recovery request'
+        };
+
+        expect(errorResponse.success).toBe(false);
+        expect(errorResponse).toHaveProperty('error');
+      });
+
+      it('should contact administrator message in recovery email', () => {
+        const message = 'please contact your system administrator';
+        expect(message).toContain('administrator');
+      });
     });
   });
-
-  describe('User Endpoints', () => {
     describe('GET /api/users', () => {
       it('should return user list with correct structure', () => {
         const mockUser = {

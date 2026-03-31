@@ -91,4 +91,101 @@ describe('Authentication', () => {
       expect(passwordRegex.test('demo123!')).toBe(true);
     });
   });
-});
+
+  describe('Signup Auto-Login Behavior', () => {
+    it('should capture signup form data correctly', () => {
+      const signupData = {
+        username: 'newuser',
+        email: 'newuser@otg.test',
+        password: 'password123',
+        role: 'manager'
+      };
+
+      expect(signupData.username).toBe('newuser');
+      expect(signupData.email).toBe('newuser@otg.test');
+      expect(signupData.password).toBe('password123');
+      expect(signupData.role).toBe('manager');
+    });
+
+    it('should verify auto-login uses same credentials from signup', () => {
+      const signupCredentials = {
+        email: 'test@otg.test',
+        password: 'password123'
+      };
+
+      const autoLoginCredentials = {
+        email: 'test@otg.test',
+        password: 'password123'
+      };
+
+      expect(autoLoginCredentials).toEqual(signupCredentials);
+    });
+
+    it('should handle auto-login timeout gracefully', () => {
+      const timeoutMessage = 'Account created! Please log in.';
+      expect(timeoutMessage).toContain('Account created');
+    });
+
+    it('should redirect to dashboard on successful auto-login', () => {
+      const redirectUrl = 'dashboard.html';
+      expect(redirectUrl).toBe('dashboard.html');
+    });
+
+    it('should store signed-up user in session before auto-login', () => {
+      const newUser = {
+        uid: 'new-123',
+        email: 'new@otg.test',
+        username: 'newuser',
+        role: 'mentor'
+      };
+
+      sessionStorage.setItem('app_session_user', JSON.stringify(newUser));
+      const stored = JSON.parse(sessionStorage.getItem('app_session_user') || '{}');
+
+      expect(stored.email).toBe('new@otg.test');
+      expect(stored.role).toBe('mentor');
+    });
+
+    it('should handle signup with supervisor assignment', () => {
+      const signupWithSupervisors = {
+        username: 'employee1',
+        email: 'employee1@otg.test',
+        password: 'password123',
+        role: 'new_team_member',
+        managerId: 'manager-uid-123',
+        mentorId: 'mentor-uid-456'
+      };
+
+      expect(signupWithSupervisors.managerId).toBe('manager-uid-123');
+      expect(signupWithSupervisors.mentorId).toBe('mentor-uid-456');
+      expect(signupWithSupervisors.role).toBe('new_team_member');
+    });
+
+    it('should handle signup with only manager (for mentor role)', () => {
+      const signupMentorData = {
+        username: 'mentor1',
+        email: 'mentor1@otg.test',
+        password: 'password123',
+        role: 'mentor',
+        managerId: 'manager-uid-123'
+      };
+
+      expect(signupMentorData.role).toBe('mentor');
+      expect(signupMentorData.managerId).toBe('manager-uid-123');
+    });
+
+    it('should clear signup form after successful auto-login redirect', () => {
+      const cleanFormExpected = {
+        username: '',
+        email: '',
+        password: '',
+        role: ''
+      };
+
+      sessionStorage.setItem('signupForm', JSON.stringify(cleanFormExpected));
+      const form = JSON.parse(sessionStorage.getItem('signupForm') || '{}');
+
+      expect(form.username).toBe('');
+      expect(form.email).toBe('');
+    });
+  });

@@ -192,13 +192,130 @@ signupForm.addEventListener('submit', async (event) => {
   signupMessage.style.color = result.success ? '#16a34a' : '#dc2626';
 
   if (result.success) {
-    setTimeout(() => {
-      signupForm.classList.add('hidden');
-      signupForm.reset();
-      signupMessage.textContent = '';
-      updateSignupRoleFields();
-      allUsers = []; // Clear cache to refresh users list
+    // Automatically log in the new user and redirect to dashboard
+    setTimeout(async () => {
+      try {
+        const loginResult = await backendSignIn(email, password);
+        if (loginResult.success) {
+          // Auth state listener will handle the redirect
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 500);
+        } else {
+          // Fallback: show message and let user manually log in
+          signupMessage.textContent = 'Account created! Please log in.';
+          signupMessage.style.color = '#16a34a';
+          signupForm.classList.add('hidden');
+          signupForm.reset();
+          updateSignupRoleFields();
+          allUsers = [];
+        }
+      } catch (err) {
+        console.error('Auto-login after signup failed:', err);
+        signupMessage.textContent = 'Account created! Please log in.';
+        signupMessage.style.color = '#16a34a';
+        signupForm.classList.add('hidden');
+        signupForm.reset();
+        updateSignupRoleFields();
+        allUsers = [];
+      }
     }, 900);
+  }
+});
+
+// Forgot Password Modal
+const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+const closeForgotPasswordModal = document.getElementById('closeForgotPasswordModal');
+const modalBackdrop = document.getElementById('modalBackdrop');
+const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+const forgotPasswordMessage = document.getElementById('forgotPasswordMessage');
+
+// Open forgot password modal
+forgotPasswordBtn.addEventListener('click', () => {
+  forgotPasswordModal.classList.remove('hidden');
+  modalBackdrop.classList.remove('hidden');
+  document.getElementById('forgotPasswordEmail').value = '';
+  forgotPasswordMessage.classList.add('hidden');
+});
+
+// Close forgot password modal
+closeForgotPasswordModal.addEventListener('click', () => {
+  forgotPasswordModal.classList.add('hidden');
+  modalBackdrop.classList.add('hidden');
+});
+
+// Close modal when clicking on backdrop
+modalBackdrop.addEventListener('click', () => {
+  forgotPasswordModal.classList.add('hidden');
+  modalBackdrop.classList.add('hidden');
+});
+
+// Prevent modal from closing when clicking inside it
+forgotPasswordModal.addEventListener('click', (e) => {
+  e.stopPropagation();
+});
+
+// Handle forgot password form submission
+forgotPasswordForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  
+  const email = document.getElementById('forgotPasswordEmail').value.trim();
+  
+  if (!email) {
+    forgotPasswordMessage.textContent = 'Please enter your email address.';
+    forgotPasswordMessage.className = 'modal-message error';
+    forgotPasswordMessage.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    // Disable submit button during request
+    const submitBtn = forgotPasswordForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Sending...';
+    submitBtn.disabled = true;
+
+    // Call backend endpoint to send password reset email
+    const response = await fetch('https://otg2026.onrender.com/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      forgotPasswordMessage.textContent = `Password recovery email sent to ${email}. Please check your email (including spam folder).`;
+      forgotPasswordMessage.className = 'modal-message success';
+      forgotPasswordMessage.classList.remove('hidden');
+      
+      // Clear form and close after 3 seconds
+      setTimeout(() => {
+        forgotPasswordForm.reset();
+        forgotPasswordModal.classList.add('hidden');
+        modalBackdrop.classList.add('hidden');
+        forgotPasswordMessage.classList.add('hidden');
+      }, 3000);
+    } else {
+      forgotPasswordMessage.textContent = result.message || 'Failed to send password recovery email.';
+      forgotPasswordMessage.className = 'modal-message error';
+      forgotPasswordMessage.classList.remove('hidden');
+    }
+
+    // Re-enable submit button
+    submitBtn.textContent = originalText;
+    submitBtn.disabled = false;
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    forgotPasswordMessage.textContent = 'An error occurred. Please try again.';
+    forgotPasswordMessage.className = 'modal-message error';
+    forgotPasswordMessage.classList.remove('hidden');
+    
+    // Re-enable submit button
+    const submitBtn = forgotPasswordForm.querySelector('button[type="submit"]');
+    submitBtn.textContent = originalText;
+    submitBtn.disabled = false;
   }
 });
 

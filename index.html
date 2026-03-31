@@ -48,7 +48,7 @@
   </div>
   <main class="container">
     <section class="card">
-      <h1>Welcome Back</h1>
+      <h1>Welcome Back</h1>git c
       <p>Sign in to continue.</p>
       <form id="loginForm">
         <label for="username">Email</label>
@@ -60,6 +60,7 @@
         <button type="submit">Login</button>
       </form>
       <p id="loginError" class="error hidden">Invalid credentials or login failed.</p>
+      <button id="forgotPasswordBtn" class="link-btn">Forgot Password?</button>
       <div class="divider">or</div>
       <button id="showSignup" class="link-btn">Create a new account</button>
 
@@ -92,7 +93,28 @@
 
         <button type="submit">Create Account</button>
         <p id="signupMessage" class="intro"></p>
-      </form>    </section>
+      </form>
+
+      <!-- Forgot Password Modal -->
+      <div id="forgotPasswordModal" class="modal hidden">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>Reset Password</h2>
+            <button type="button" id="closeForgotPasswordModal" class="modal-close">×</button>
+          </div>
+          <form id="forgotPasswordForm">
+            <p class="modal-description">Enter your email address and we'll send you your password.</p>
+            <label for="forgotPasswordEmail">Email Address</label>
+            <input type="email" id="forgotPasswordEmail" name="forgotPasswordEmail" required />
+            <button type="submit" class="modal-submit-btn">Send Password</button>
+          </form>
+          <p id="forgotPasswordMessage" class="modal-message hidden"></p>
+        </div>
+      </div>
+
+      <!-- Modal Backdrop -->
+      <div id="modalBackdrop" class="modal-backdrop hidden"></div>
+    </section>
   </main>
   <script type="module" src="app.js"></script>
 </body>

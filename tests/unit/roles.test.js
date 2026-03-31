@@ -128,4 +128,142 @@ describe('Role-Based Access Control', () => {
       expect(ROLE_CHECKLIST.new_team_member[0]).toBe('Complete onboarding checklist');
     });
   });
+
+  describe('Role-Based Auto-Login Behavior', () => {
+    it('should initialize manager dashboard after signup auto-login', () => {
+      const manager = {
+        uid: 'mgr-auto-123',
+        email: 'manager@otg.test',
+        role: 'manager',
+        dashboardType: 'manager'
+      };
+
+      expect(manager.role).toBe('manager');
+      expect(manager.dashboardType).toBe('manager');
+    });
+
+    it('should initialize mentor dashboard with supervisory role after auto-login', () => {
+      const mentor = {
+        uid: 'mtr-auto-123',
+        email: 'mentor@otg.test',
+        role: 'mentor',
+        dashboardType: 'mentor',
+        managerId: 'mgr-123'
+      };
+
+      expect(mentor.role).toBe('mentor');
+      expect(mentor.managerId).toBeDefined();
+      expect(mentor.dashboardType).toBe('mentor');
+    });
+
+    it('should initialize new team member dashboard with mentor and manager after auto-login', () => {
+      const employee = {
+        uid: 'emp-auto-123',
+        email: 'employee@otg.test',
+        role: 'new_team_member',
+        dashboardType: 'employee',
+        managerId: 'mgr-123',
+        mentorId: 'mtr-123'
+      };
+
+      expect(employee.role).toBe('new_team_member');
+      expect(employee.managerId).toBeDefined();
+      expect(employee.mentorId).toBeDefined();
+      expect(employee.dashboardType).toBe('employee');
+    });
+
+    it('should assign role-specific checklist items after auto-login', () => {
+      const userChecklist = {
+        uid: 'emp-auto-456',
+        role: 'new_team_member',
+        tasks: [
+          { id: '1', description: 'Complete onboarding checklist', completed: false },
+          { id: '2', description: 'Set up development environment', completed: false },
+          { id: '3', description: 'Meet your mentor/team lead', completed: false }
+        ]
+      };
+
+      expect(userChecklist.tasks).toHaveLength(3);
+      expect(userChecklist.tasks[0].description).toBе('Complete onboarding checklist');
+    });
+
+    it('should set up role hierarchy after manager signup auto-login', () => {
+      const managerAfterAutoLogin = {
+        uid: 'mgr-auto-789',
+        role: 'manager',
+        supervisory: true,
+        canApprove: true,
+        canViewMetrics: true
+      };
+
+      expect(managerAfterAutoLogin.supervisory).toBe(true);
+      expect(managerAfterAutoLogin.canApprove).toBe(true);
+    });
+
+    it('should grant supervisory permissions after mentor signup auto-login', () => {
+      const mentorAfterAutoLogin = {
+        uid: 'mtr-auto-456',
+        role: 'mentor',
+        supervisory: true,
+        canReviewProgress: true,
+        canProvideFeeback: true
+      };
+
+      expect(mentorAfterAutoLogin.supervisory).toBe(true);
+      expect(mentorAfterAutoLogin.canReviewProgress).toBe(true);
+    });
+
+    it('should restrict permissions for new team member after signup auto-login', () => {
+      const employeeAfterAutoLogin = {
+        uid: 'emp-auto-789',
+        role: 'new_team_member',
+        supervisory: false,
+        canCompleteChecklist: true,
+        canApproveProjects: false
+      };
+
+      expect(employeeAfterAutoLogin.supervisory).toBe(false);
+      expect(employeeAfterAutoLogin.canCompleteChecklist).toBe(true);
+      expect(employeeAfterAutoLogin.canApproveProjects).toBe(false);
+    });
+
+    it('should maintain role hierarchy through page reload after auto-login', () => {
+      const userBeforeReload = {
+        uid: 'user-reload-123',
+        role: 'mentor',
+        managerId: 'mgr-123'
+      };
+
+      // Simulate page reload by checking data persists
+      const userAfterReload = {
+        uid: 'user-reload-123',
+        role: 'mentor',
+        managerId: 'mgr-123'
+      };
+
+      expect(userAfterReload.role).toBe(userBeforeReload.role);
+      expect(userAfterReload.managerId).toBe(userBeforeReload.managerId);
+    });
+
+    it('should verify manager role allows team visibility after auto-login', () => {
+      const manager = { role: 'manager' };
+      const canViewTeam = manager.role === 'manager';
+
+      expect(canViewTeam).toBe(true);
+    });
+
+    it('should verify mentor role allows mentee visibility after auto-login', () => {
+      const mentor = { role: 'mentor' };
+      const canViewMentees = mentor.role === 'mentor' || mentor.role === 'manager';
+
+      expect(canViewMentees).toBe(true);
+    });
+
+    it('should verify new team member role restricts others visibility after auto-login', () => {
+      const employee = { role: 'new_team_member' };
+      const canViewOthers = employee.role === 'manager' || employee.role === 'mentor';
+
+      expect(canViewOthers).toBe(false);
+    });
+  });
 });

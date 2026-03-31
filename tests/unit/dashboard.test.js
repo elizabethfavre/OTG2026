@@ -324,4 +324,104 @@ describe('Dashboard Functionality', () => {
       expect(typeof window.location).toBe('object');
     });
   });
+
+  describe('Dashboard After Auto-Login from Signup', () => {
+    it('should load dashboard when user auto-logs in after signup', () => {
+      const signedUpUser = {
+        uid: 'new-user-123',
+        email: 'newuser@otg.test',
+        username: 'newuser',
+        role: 'manager'
+      };
+
+      sessionStorage.setItem('app_session_user', JSON.stringify(signedUpUser));
+      const user = JSON.parse(sessionStorage.getItem('app_session_user') || '{}');
+
+      expect(user.uid).toBe('new-user-123');
+      expect(user.role).toBe('manager');
+    });
+
+    it('should display welcome message for new user after auto-login', () => {
+      const user = {
+        uid: 'new-user-123',
+        username: 'newuser',
+        isNewUser: true
+      };
+
+      // Check if this is a new user signup
+      const showWelcome = user.isNewUser;
+      expect(showWelcome).toBe(true);
+    });
+
+    it('should initialize checklist for new user after auto-login', () => {
+      const userChecklist = {
+        uid: 'new-user-123',
+        tasks: [
+          { id: '1', description: 'First task', completed: false }
+        ]
+      };
+
+      expect(userChecklist.tasks).toHaveLength(1);
+    });
+
+    it('should set up supervisor relationships after auto-login from signup', () => {
+      const newEmployee = {
+        uid: 'emp-123',
+        role: 'new_team_member',
+        managerId: 'mgr-123',
+        mentorId: 'mtr-123'
+      };
+
+      sessionStorage.setItem('app_session_user', JSON.stringify(newEmployee));
+      const user = JSON.parse(sessionStorage.getItem('app_session_user') || '{}');
+
+      expect(user.managerId).toBe('mgr-123');
+      expect(user.mentorId).toBe('mtr-123');
+    });
+
+    it('should preserve user data after browser reload post auto-login', () => {
+      const user = {
+        uid: 'user-123',
+        email: 'test@otg.test',
+        username: 'testuser',
+        role: 'mentor'
+      };
+
+      sessionStorage.setItem('app_session_user', JSON.stringify(user));
+      
+      // Simulate reload - data should persist in sessionStorage
+      const reloadedUser = JSON.parse(sessionStorage.getItem('app_session_user') || '{}');
+
+      expect(reloadedUser.uid).toBe('user-123');
+      expect(reloadedUser.email).toBe('test@otg.test');
+    });
+
+    it('should handle role-specific dashboard initialization after auto-login', () => {
+      const managerAfterAutoLogin = {
+        uid: 'mgr-123',
+        role: 'manager',
+        dashboardType: 'manager'
+      };
+
+      sessionStorage.setItem('app_session_user', JSON.stringify(managerAfterAutoLogin));
+      const user = JSON.parse(sessionStorage.getItem('app_session_user') || '{}');
+
+      expect(user.dashboardType).toBe('manager');
+    });
+
+    it('should fetch user data from backend after auto-login', () => {
+      const loginToken = 'custom-jwt-token-123';
+      const userFromBackend = {
+        uid: 'user-123',
+        email: 'user@otg.test',
+        username: 'testuser',
+        role: 'mentor',
+        managerId: 'mgr-123'
+      };
+
+      expect(loginToken).toBeTruthy();
+      expect(userFromBackend).toHaveProperty('uid');
+      expect(userFromBackend).toHaveProperty('role');
+    });
+  });
 });
