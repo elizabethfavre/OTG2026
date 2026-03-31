@@ -487,6 +487,36 @@ app.delete('/api/users/:uid', async (req, res) => {
   }
 });
 
+/**
+ * DELETE /api/admin/clear-test-employees
+ * Clear all new_team_member accounts (admin use only)
+ */
+app.delete('/api/admin/clear-test-employees', async (req, res) => {
+  try {
+    const snapshot = await db.collection('users')
+      .where('role', '==', 'new_team_member')
+      .get();
+
+    const deletedCount = snapshot.docs.length;
+    const deletePromises = snapshot.docs.map(doc =>
+      db.collection('users').doc(doc.id).update({
+        isActive: false,
+        deletedAt: admin.firestore.FieldValue.serverTimestamp()
+      })
+    );
+
+    await Promise.all(deletePromises);
+
+    res.json({ 
+      message: `Successfully deleted ${deletedCount} new_team_member accounts`,
+      count: deletedCount
+    });
+  } catch (error) {
+    console.error('Clear test employees error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ============= CHECKLIST/TASKS ENDPOINTS =============
 
 /**
