@@ -285,13 +285,16 @@ forgotPasswordForm.addEventListener('submit', async (event) => {
     submitBtn.disabled = true;
 
     // Call backend endpoint to send password reset email
+    console.log('Calling API: POST https://otg2026.onrender.com/api/auth/forgot-password');
     const response = await fetch('https://otg2026.onrender.com/api/auth/forgot-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
 
+    console.log('API Response status:', response.status);
     const result = await response.json();
+    console.log('API Response body:', result);
 
     if (response.ok) {
       forgotPasswordMessage.textContent = `Password recovery email sent to ${email}. Please check your email (including spam folder).`;
@@ -306,6 +309,8 @@ forgotPasswordForm.addEventListener('submit', async (event) => {
         forgotPasswordMessage.classList.add('hidden');
       }, 3000);
     } else {
+      console.error('API returned error status:', response.status);
+      console.error('Error response:', result);
       forgotPasswordMessage.textContent = result.message || 'Failed to send password recovery email.';
       forgotPasswordMessage.className = 'modal-message error';
       forgotPasswordMessage.classList.remove('hidden');
@@ -315,7 +320,9 @@ forgotPasswordForm.addEventListener('submit', async (event) => {
     submitBtn.textContent = originalText;
     submitBtn.disabled = false;
   } catch (error) {
-    console.error('Forgot password error:', error);
+    console.error('❌ Forgot password error:', error);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
     forgotPasswordMessage.textContent = 'An error occurred. Please try again.';
     forgotPasswordMessage.className = 'modal-message error';
     forgotPasswordMessage.classList.remove('hidden');
