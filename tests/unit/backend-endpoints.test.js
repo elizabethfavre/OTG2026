@@ -327,78 +327,78 @@ describe('Backend Server Endpoints', () => {
       });
     });
   });
-    describe('GET /api/users', () => {
-      it('should return user list with correct structure', () => {
-        const mockUser = {
-          uid: 'user-1',
-          username: 'testuser',
-          email: 'test@example.com',
-          role: 'mentor'
-        };
 
-        expect(mockUser).toHaveProperty('uid');
-        expect(mockUser).toHaveProperty('username');
-        expect(mockUser).toHaveProperty('email');
-        expect(mockUser).toHaveProperty('role');
-      });
+  describe('GET /api/users', () => {
+    it('should return user list with correct structure', () => {
+      const mockUser = {
+        uid: 'user-1',
+        username: 'testuser',
+        email: 'test@example.com',
+        role: 'mentor'
+      };
+
+      expect(mockUser).toHaveProperty('uid');
+      expect(mockUser).toHaveProperty('username');
+      expect(mockUser).toHaveProperty('email');
+      expect(mockUser).toHaveProperty('role');
+    });
+  });
+
+  describe('GET /api/users/:uid', () => {
+    it('should return specific user data', () => {
+      const mockUser = {
+        uid: 'user-123',
+        username: 'testuser',
+        email: 'test@example.com',
+        role: 'mentor'
+      };
+
+      expect(mockUser.uid).toBe('user-123');
     });
 
-    describe('GET /api/users/:uid', () => {
-      it('should return specific user data', () => {
-        const mockUser = {
-          uid: 'user-123',
-          username: 'testuser',
-          email: 'test@example.com',
-          role: 'mentor'
-        };
+    it('should include user relationships', () => {
+      const mockUser = {
+        uid: 'user-123',
+        username: 'employee',
+        role: 'new_team_member',
+        managerId: 'manager-123',
+        mentorId: 'mentor-123'
+      };
 
-        expect(mockUser.uid).toBe('user-123');
-      });
+      expect(mockUser.managerId).toBeDefined();
+      expect(mockUser.mentorId).toBeDefined();
+    });
+  });
 
-      it('should include user relationships', () => {
-        const mockUser = {
-          uid: 'user-123',
-          username: 'employee',
-          role: 'new_team_member',
-          managerId: 'manager-123',
-          mentorId: 'mentor-123'
-        };
+  describe('GET /api/users/role/:role', () => {
+    it('should filter users by manager role', () => {
+      const managers = [
+        { id: '1', username: 'manager1', role: 'manager' },
+        { id: '2', username: 'manager2', role: 'manager' }
+      ];
 
-        expect(mockUser.managerId).toBeDefined();
-        expect(mockUser.mentorId).toBeDefined();
-      });
+      const filtered = managers.filter(u => u.role === 'manager');
+      expect(filtered).toHaveLength(2);
     });
 
-    describe('GET /api/users/role/:role', () => {
-      it('should filter users by manager role', () => {
-        const managers = [
-          { id: '1', username: 'manager1', role: 'manager' },
-          { id: '2', username: 'manager2', role: 'manager' }
-        ];
+    it('should filter users by mentor role', () => {
+      const mentors = [
+        { id: '1', username: 'mentor1', role: 'mentor' },
+        { id: '2', username: 'mentor2', role: 'mentor' }
+      ];
 
-        const filtered = managers.filter(u => u.role === 'manager');
-        expect(filtered).toHaveLength(2);
-      });
+      const filtered = mentors.filter(u => u.role === 'mentor');
+      expect(filtered).toHaveLength(2);
+    });
 
-      it('should filter users by mentor role', () => {
-        const mentors = [
-          { id: '1', username: 'mentor1', role: 'mentor' },
-          { id: '2', username: 'mentor2', role: 'mentor' }
-        ];
+    it('should filter users by new_team_member role', () => {
+      const employees = [
+        { id: '1', username: 'employee1', role: 'new_team_member' },
+        { id: '2', username: 'employee2', role: 'new_team_member' }
+      ];
 
-        const filtered = mentors.filter(u => u.role === 'mentor');
-        expect(filtered).toHaveLength(2);
-      });
-
-      it('should filter users by new_team_member role', () => {
-        const employees = [
-          { id: '1', username: 'employee1', role: 'new_team_member' },
-          { id: '2', username: 'employee2', role: 'new_team_member' }
-        ];
-
-        const filtered = employees.filter(u => u.role === 'new_team_member');
-        expect(filtered).toHaveLength(2);
-      });
+      const filtered = employees.filter(u => u.role === 'new_team_member');
+      expect(filtered).toHaveLength(2);
     });
   });
 

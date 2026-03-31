@@ -146,7 +146,12 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     // Verify password using Firebase REST API
-    const firebaseRestUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY || 'AIzaSyBNapqfmQzMHfJl8MfUqhWZuLMJEpKPuqI'}`;
+    if (!process.env.FIREBASE_API_KEY) {
+      console.error('FIREBASE_API_KEY not set in environment variables');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+
+    const firebaseRestUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`;
     
     let passwordVerified = false;
     let firebaseUser = null;

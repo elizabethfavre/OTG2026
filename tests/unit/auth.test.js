@@ -189,3 +189,4 @@ describe('Authentication', () => {
       expect(form.email).toBe('');
     });
   });
+});

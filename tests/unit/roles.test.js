@@ -184,7 +184,7 @@ describe('Role-Based Access Control', () => {
       };
 
       expect(userChecklist.tasks).toHaveLength(3);
-      expect(userChecklist.tasks[0].description).toBе('Complete onboarding checklist');
+      expect(userChecklist.tasks[0].description).toBe('Complete onboarding checklist');
     });
 
     it('should set up role hierarchy after manager signup auto-login', () => {
