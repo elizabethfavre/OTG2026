@@ -281,10 +281,13 @@ function updateChecklistSummary() {
 function logoutAndRedirect(message) {
   backendSignOut();
   sessionStorage.removeItem('app_session_user');
+  localStorage.clear();
   if (message) {
     alert(message);
   }
-  window.location.href = 'index.html';
+  setTimeout(() => {
+    window.location.href = 'index.html';
+  }, 500);
 }
 
 function formatTimeForTimezone(timezone) {
