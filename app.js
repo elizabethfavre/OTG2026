@@ -130,8 +130,8 @@ async function populateSupervisors() {
     console.log('Loaded users:', allUsers);
   }
 
-  // Populate mentor dropdown with available mentors
-  const mentors = allUsers.filter(u => u.role === 'mentor');
+  // Populate mentor dropdown with available mentors (only active users)
+  const mentors = allUsers.filter(u => u.role === 'mentor' && u.isActive !== false);
   console.log('Available mentors:', mentors);
   signupMentor.innerHTML = '<option value="">-- No Mentor --</option>';
   mentors.forEach(m => {
@@ -141,8 +141,8 @@ async function populateSupervisors() {
     signupMentor.appendChild(option);
   });
 
-  // Populate manager dropdown with available managers
-  const managers = allUsers.filter(u => u.role === 'manager');
+  // Populate manager dropdown with available managers (only active users)
+  const managers = allUsers.filter(u => u.role === 'manager' && u.isActive !== false);
   console.log('Available managers:', managers);
   signupManager.innerHTML = '<option value="">-- No Manager --</option>';
   managers.forEach(m => {
