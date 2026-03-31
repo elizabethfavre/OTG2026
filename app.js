@@ -231,6 +231,12 @@ const modalBackdrop = document.getElementById('modalBackdrop');
 const forgotPasswordForm = document.getElementById('forgotPasswordForm');
 const forgotPasswordMessage = document.getElementById('forgotPasswordMessage');
 
+if (forgotPasswordForm) {
+  console.log('✓ Forgot password form found');
+} else {
+  console.error('✗ Forgot password form NOT found - HTML element missing');
+}
+
 // Open forgot password modal
 forgotPasswordBtn.addEventListener('click', () => {
   forgotPasswordModal.classList.remove('hidden');
@@ -259,8 +265,10 @@ forgotPasswordModal.addEventListener('click', (e) => {
 // Handle forgot password form submission
 forgotPasswordForm.addEventListener('submit', async (event) => {
   event.preventDefault();
+  console.log('Forgot password form submitted');
   
   const email = document.getElementById('forgotPasswordEmail').value.trim();
+  console.log('Email entered:', email);
   
   if (!email) {
     forgotPasswordMessage.textContent = 'Please enter your email address.';
