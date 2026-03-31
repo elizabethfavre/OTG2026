@@ -85,6 +85,7 @@ app.post('/api/auth/signup', async (req, res) => {
       username,
       email,
       role,
+      isActive: true,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       lastLogin: admin.firestore.FieldValue.serverTimestamp()
     };
@@ -382,10 +383,12 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 app.get('/api/users', async (req, res) => {
   try {
     const snapshot = await db.collection('users').get();
-    const users = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const users = snapshot.docs
+      .map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      .filter(user => user.isActive !== false); // Filter out deleted/inactive users
 
     res.json(users);
   } catch (error) {
@@ -426,10 +429,12 @@ app.get('/api/users/role/:role', async (req, res) => {
       .where('role', '==', req.params.role)
       .get();
 
-    const users = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const users = snapshot.docs
+      .map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      .filter(user => user.isActive !== false); // Filter out deleted/inactive users
 
     res.json(users);
   } catch (error) {
@@ -460,6 +465,24 @@ app.put('/api/users/:uid', async (req, res) => {
     res.json({ message: 'User updated successfully' });
   } catch (error) {
     console.error('Update user error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * DELETE /api/users/:uid
+ * Soft delete user (marks as inactive)
+ */
+app.delete('/api/users/:uid', async (req, res) => {
+  try {
+    await db.collection('users').doc(req.params.uid).update({
+      isActive: false,
+      deletedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Delete user error:', error);
     res.status(500).json({ error: error.message });
   }
 });
