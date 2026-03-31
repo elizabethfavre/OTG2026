@@ -85,6 +85,11 @@ body {
   margin: 0 auto;
 }
 
+.dashboard-grid > .card {
+  max-width: none;
+  margin: 0;
+}
+
 .card h1 {
   margin: 0 0 0.2rem 0;
   font-size: 1.3rem;
