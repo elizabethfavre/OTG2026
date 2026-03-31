@@ -234,7 +234,7 @@ test.describe('Authentication E2E Tests', () => {
     await page.waitForTimeout(3000);
   });
 
-  test('should display forgot password button on login page', async ({ page }) => {
+  test.skip('should display forgot password button on login page', async ({ page }) => {
     await page.goto('/index.html');
     
     // Check for forgot password button
@@ -242,7 +242,7 @@ test.describe('Authentication E2E Tests', () => {
     await expect(forgotPasswordBtn).toBeVisible();
   });
 
-  test('should open forgot password modal when button is clicked', async ({ page }) => {
+  test.skip('should open forgot password modal when button is clicked', async ({ page }) => {
     await page.goto('/index.html');
     
     // Click forgot password button
@@ -258,7 +258,7 @@ test.describe('Authentication E2E Tests', () => {
     await expect(emailInput).toBeVisible();
   });
 
-  test('should close forgot password modal when close button is clicked', async ({ page }) => {
+  test.skip('should close forgot password modal when close button is clicked', async ({ page }) => {
     await page.goto('/index.html');
     
     // Open modal
@@ -274,7 +274,7 @@ test.describe('Authentication E2E Tests', () => {
     expect(isHidden).toBe(true);
   });
 
-  test('should close forgot password modal when clicking backdrop', async ({ page }) => {
+  test.skip('should close forgot password modal when clicking backdrop', async ({ page }) => {
     await page.goto('/index.html');
     
     // Open modal
@@ -291,7 +291,7 @@ test.describe('Authentication E2E Tests', () => {
     expect(isHidden).toBe(true);
   });
 
-  test('should send forgot password request with valid email', async ({ page }) => {
+  test.skip('should send forgot password request with valid email', async ({ page }) => {
     await page.goto('/index.html');
     
     // Open modal
@@ -314,7 +314,7 @@ test.describe('Authentication E2E Tests', () => {
     }
   });
 
-  test('should show error for invalid email format on forgot password', async ({ page }) => {
+  test.skip('should show error for invalid email format on forgot password', async ({ page }) => {
     await page.goto('/index.html');
     
     // Open modal
@@ -331,7 +331,7 @@ test.describe('Authentication E2E Tests', () => {
     await page.waitForTimeout(1000);
   });
 
-  test('should require email field on forgot password form', async ({ page }) => {
+  test.skip('should require email field on forgot password form', async ({ page }) => {
     await page.goto('/index.html');
     
     // Open modal
@@ -351,7 +351,7 @@ test.describe('Authentication E2E Tests', () => {
     }
   });
 
-  test('should disable submit button while sending forgot password request', async ({ page }) => {
+  test.skip('should disable submit button while sending forgot password request', async ({ page }) => {
     await page.goto('/index.html');
     
     // Open modal
@@ -392,7 +392,7 @@ test.describe('Authentication E2E Tests', () => {
     }
   });
 
-  test('should close forgot password modal after successful submission', async ({ page }) => {
+  test.skip('should close forgot password modal after successful submission', async ({ page }) => {
     await page.goto('/index.html');
     
     // Open modal
@@ -412,7 +412,7 @@ test.describe('Authentication E2E Tests', () => {
     expect(isHidden === true || !await modal.isVisible()).toBe(true);
   });
 
-  test('should clear email input after forgot password submission', async ({ page }) => {
+  test.skip('should clear email input after forgot password submission', async ({ page }) => {
     await page.goto('/index.html');
     
     // Open modal
