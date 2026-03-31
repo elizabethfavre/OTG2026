@@ -5,9 +5,7 @@
  */
 
 // Set your backend URL
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-backend-url.herokuapp.com/api'
-  : 'http://localhost:3000/api';
+const API_BASE_URL = 'https://otg2026.onrender.com/api';
 
 let currentToken = null;
 let currentUser = null;
