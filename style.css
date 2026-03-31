@@ -72,7 +72,6 @@ body {
   flex-direction: column;
   gap: 1rem;
   min-width: 0;
-  overflow: hidden;
 }
 
 .card {
@@ -176,9 +175,6 @@ body {
 }
 
 .worldclock-card {
-  position: sticky;
-  top: 130px;
-  align-self: start;
   background: linear-gradient(135deg, #F0FFFE 0%, #E8FDFB 100%);
   border: 2px solid #54E9AE;
   border-radius: 16px;
