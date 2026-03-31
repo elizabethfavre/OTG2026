@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Username Display (Upper Left) -->
+  <div class="username-badge">
+    <div id="usernameBadge" class="username-text"></div>
+    <div id="userTypeBadge" class="usertype-text"></div>
+  </div>
+
+  <!-- Logout Button (Upper Right) -->
+  <button id="logoutBtn" class="logout-btn">Logout</button>
+
+  <!-- Navigation Space with Fun Banner -->
+  <nav class="header-nav">
+    <div class="welcome-banner">
+      <div>Welcome A'Baud! 🚀</div>
+      <div class="tagline">Fueled by good</div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="dashboard-grid">
+      <!-- Left Column: World Clock and Teams -->
+      <div class="dashboard-left">
+        <!-- World Clock -->
+        <aside class="worldclock-card">
+          <div class="worldclock-header">
+            <div class="worldclock-title">
+              <span>🌍</span>
+              <h3>World Clock</h3>
+            </div>
+            <p class="worldclock-sub">Find current local times for team locations.</p>
+          </div>
+          <div class="worldclock-body">
+            <label for="locationSearch">Search location</label>
+            <input id="locationSearch" autocomplete="off" placeholder="Start typing city name..." maxlength="50" />
+            <ul id="locationSuggestions" class="suggestion-list hidden"></ul>
+            <p id="locationError" class="error hidden">Please select one of the suggested locations.</p>
+            <div id="timeResult" class="time-result hidden">
+              <p><strong id="locationName"></strong></p>
+              <p id="locationTime"></p>
+            </div>
+          </div>
+        </aside>
+
+        <!-- New Member View: Shows Manager and Mentor -->
+        <aside id="newMemberTile" class="worldclock-card hidden">
+          <div class="worldclock-header">
+            <div class="worldclock-title">
+              <span>👥</span>
+              <h3>Your Team</h3>
+            </div>
+            <p class="worldclock-sub">Your manager and mentor.</p>
+          </div>
+          <div class="worldclock-body">
+            <div id="managerInfo" class="team-member-card"></div>
+            <div id="mentorInfo" class="team-member-card"></div>
+          </div>
+        </aside>
+
+        <!-- Mentor View: Shows Direct Reports -->
+        <aside id="mentorTile" class="worldclock-card hidden">
+          <div class="worldclock-header">
+            <div class="worldclock-title">
+              <span>👥</span>
+              <h3>My Team Members</h3>
+            </div>
+            <p class="worldclock-sub">New members reporting to you.</p>
+          </div>
+          <div class="worldclock-body">
+            <ul id="mentorReports" class="team-list"></ul>
+            <p id="noMentorReports" class="intro">No team members assigned yet.</p>
+          </div>
+        </aside>
+
+        <!-- Manager View: Shows All Direct Reports -->
+        <aside id="managerTile" class="worldclock-card hidden">
+          <div class="worldclock-header">
+            <div class="worldclock-title">
+              <span>👥</span>
+              <h3>My Team</h3>
+            </div>
+            <p class="worldclock-sub">All people reporting to you.</p>
+          </div>
+          <div class="worldclock-body">
+            <div id="managerTeamSections"></div>
+            <p id="noManagerReports" class="intro">No team members assigned yet.</p>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Right Column: Progress/Checklist -->
+      <section class="card">
+        <div class="topbar">
+          <div>
+            <h2>Your Progress</h2>
+          </div>
+        </div>
+
+        <div id="successMessage" class="success-message hidden"></div>
+
+        <p class="intro">You're on the right track. Keep going!</p>
+
+        <ul id="checklist" class="checklist"></ul>
+
+        <div id="addTaskContainer" class="add-task-container hidden">
+          <button id="addTaskCircleBtn" class="add-task-circle" title="Add new task">+</button>
+        </div>
+
+        <!-- Add Task Modal -->
+        <div id="addTaskModal" class="modal hidden">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>Add New Task</h3>
+              <button id="closeModalBtn" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+              <textarea id="taskDescription" placeholder="Enter task description..." maxlength="500" rows="6"></textarea>
+            </div>
+            <div class="modal-footer">
+              <button id="modalCancelBtn" class="modal-btn-cancel">Cancel</button>
+              <button id="modalAddBtn" class="modal-btn-add">Add Task</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="summary" id="summary">0 / 0 completed</div>
+        <p class="progress-indicator" id="progressText"></p>
+      </section>
+
+      <!-- Right Column: Resources -->
+      <section class="card resources-card">
+        <div class="topbar">
+          <div>
+            <h2>Resources</h2>
+          </div>
+        </div>
+
+        <div class="tabs-container">
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="blackbaud">Blackbaud</button>
+            <button class="tab-btn" data-tab="scd">SCD</button>
+            <button class="tab-btn" data-tab="product">Product</button>
+          </div>
+
+          <div id="blackbaud" class="tab-content active">
+            <ul class="resource-list">
+              <li><a href="https://www.blackbaud.com/" target="_blank" rel="noopener noreferrer">Blackbaud Homepage</a></li>
+              <li><a href="https://developer.blackbaud.com/" target="_blank" rel="noopener noreferrer">Blackbaud Developer Portal</a></li>
+              <li><a href="https://kb.blackbaud.com/" target="_blank" rel="noopener noreferrer">Knowledge Base</a></li>
+              <li><a href="https://www.blackbaud.com/careers" target="_blank" rel="noopener noreferrer">Careers</a></li>
+              <li><a href="https://www.blackbaud.com/about" target="_blank" rel="noopener noreferrer">About Blackbaud</a></li>
+            </ul>
+          </div>
+
+          <div id="scd" class="tab-content">
+            <ul class="resource-list">
+              <li><a href="https://www.blackbaud.com/en-us/products/school-and-student-management" target="_blank" rel="noopener noreferrer">SCD Product Page</a></li>
+              <li><a href="https://kb.blackbaud.com/articles/en_US/FAQ/SCD_FAQ" target="_blank" rel="noopener noreferrer">SCD FAQ</a></li>
+              <li><a href="https://www.blackbaud.com/en-us/products/school-and-student-management/training" target="_blank" rel="noopener noreferrer">SCD Training</a></li>
+              <li><a href="https://www.blackbaud.com/en-us/solutions/K12" target="_blank" rel="noopener noreferrer">K-12 Solutions</a></li>
+              <li><a href="https://www.blackbaud.com/en-us/resources/webinars" target="_blank" rel="noopener noreferrer">Webinars</a></li>
+            </ul>
+          </div>
+
+          <div id="product" class="tab-content">
+            <ul class="resource-list">
+              <li><a href="https://www.blackbaud.com/en-us/products" target="_blank" rel="noopener noreferrer">All Products</a></li>
+              <li><a href="https://www.blackbaud.com/en-us/resources/documentation" target="_blank" rel="noopener noreferrer">Documentation</a></li>
+              <li><a href="https://www.blackbaud.com/en-us/resources/guides" target="_blank" rel="noopener noreferrer">Implementation Guides</a></li>
+              <li><a href="https://www.blackbaud.com/en-us/resources/case-studies" target="_blank" rel="noopener noreferrer">Case Studies</a></li>
+              <li><a href="https://www.blackbaud.com/en-us/solutions" target="_blank" rel="noopener noreferrer">Industry Solutions</a></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>

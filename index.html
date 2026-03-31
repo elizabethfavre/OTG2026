@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="splash-hero">
+    <div class="hero-content">
+      <svg class="hero-icon" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Onboarding growth illustration: person climbing ladder toward rocket, symbolizing learning and progress">
+        <!-- Rocket body -->
+        <rect x="52" y="20" width="16" height="45" fill="#54E9AE" stroke="#004054" stroke-width="2" rx="2"/>
+        
+        <!-- Rocket nose cone -->
+        <path d="M 52 20 L 60 8 L 68 20 Z" fill="#54E9AE" stroke="#004054" stroke-width="2"/>
+        
+        <!-- Rocket window -->
+        <circle cx="60" cy="28" r="3" fill="#004054"/>
+        
+        <!-- Rocket fins (left) -->
+        <path d="M 52 55 L 42 68 L 50 65 Z" fill="#1C61DC" stroke="#004054" stroke-width="2"/>
+        
+        <!-- Rocket fins (right) -->
+        <path d="M 68 55 L 78 68 L 70 65 Z" fill="#1C61DC" stroke="#004054" stroke-width="2"/>
+        
+        <!-- Rocket exhaust nozzle -->
+        <rect x="54" y="62" width="12" height="6" fill="#004054" stroke="#004054" stroke-width="1" rx="1"/>
+        
+        <!-- Flame effect -->
+        <path d="M 56 68 Q 54 75 57 80 Q 60 75 63 80 Q 64 75 62 68 Z" fill="#B061F2" stroke="#6303F3" stroke-width="1.5" opacity="0.8"/>
+        
+        <!-- Ladder -->
+        <line x1="25" y1="80" x2="25" y2="110" stroke="#004054" stroke-width="3"/>
+        <line x1="35" y1="80" x2="35" y2="110" stroke="#004054" stroke-width="3"/>
+        <line x1="25" y1="85" x2="35" y2="85" stroke="#004054" stroke-width="3"/>
+        <line x1="25" y1="95" x2="35" y2="95" stroke="#004054" stroke-width="3"/>
+        <line x1="25" y1="105" x2="35" y2="105" stroke="#004054" stroke-width="3"/>
+        
+        <!-- Character -->
+        <circle cx="30" cy="70" r="8" fill="#54E9AE" stroke="#004054" stroke-width="2"/>
+        <circle cx="26" cy="62" r="6" fill="#004054" stroke="#004054" stroke-width="2"/>
+      </svg>
+      <h1>You've Got This</h1>
+      <p>Welcome to Blackbaud. Let's get you started!</p>
+    </div>
+  </div>
+  <main class="container">
+    <section class="card">
+      <h1>Welcome Back</h1>
+      <p>Sign in to continue.</p>
+      <form id="loginForm">
+        <label for="username">Email</label>
+        <input type="email" id="username" name="username" autocomplete="new-username" required />
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="new-password" required />
+
+        <button type="submit">Login</button>
+      </form>
+      <p id="loginError" class="error hidden">Invalid credentials or login failed.</p>
+      <div class="divider">or</div>
+      <button id="showSignup" class="link-btn">Create a new account</button>
+
+      <form id="signupForm" class="hidden">
+        <label for="signupUsername">Username</label>
+        <input type="text" id="signupUsername" name="signupUsername" required />
+
+        <label for="signupEmail">Email</label>
+        <input type="email" id="signupEmail" name="signupEmail" required />
+
+        <label for="signupPassword">Password</label>
+        <input type="password" id="signupPassword" name="signupPassword" required />
+
+        <label for="signupRole">Role</label>
+        <select id="signupRole" name="signupRole" required>
+          <option value="new_team_member">New Team Member</option>
+          <option value="mentor">Mentor</option>
+          <option value="manager">Manager</option>
+        </select>
+
+        <label for="signupMentor" id="mentorLabel" class="hidden">Assign Mentor</label>
+        <select id="signupMentor" name="signupMentor" class="hidden">
+          <option value="">-- No Mentor --</option>
+        </select>
+
+        <label for="signupManager" id="managerLabel" class="hidden">Assign Manager</label>
+        <select id="signupManager" name="signupManager" class="hidden">
+          <option value="">-- No Manager --</option>
+        </select>
+
+        <button type="submit">Create Account</button>
+        <p id="signupMessage" class="intro"></p>
+      </form>    </section>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
