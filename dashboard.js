@@ -303,24 +303,43 @@ async function syncChecklistChangesToBackend() {
     const raw = localStorage.getItem(getChecklistKey(currentUser.uid));
     const savedState = raw ? JSON.parse(raw) : [];
     
+    console.log('[DEBUG] Current state:', currentState.length, 'items');
+    console.log('[DEBUG] Saved state:', savedState.length, 'items');
+    
     // Send updates for any changed items
     let syncPromises = [];
-    currentState.forEach((isChecked, idx) => {
-      // Only update if state changed from what was saved
-      if (idx < savedState.length && savedState[idx] !== isChecked) {
-        console.log(`[DEBUG] Syncing task ${idx}: checked=${isChecked}`);
-        syncPromises.push(updateChecklistTask(currentUser.uid, idx, isChecked).catch(err => {
-          console.error(`Error syncing task ${idx}:`, err);
-          // Continue even if one sync fails
-          return true;
-        }));
+    let changedCount = 0;
+    
+    for (let idx = 0; idx < currentState.length; idx++) {
+      const isChecked = currentState[idx];
+      const wasSaved = idx < savedState.length ? savedState[idx] : false;
+      
+      // Sync if state changed from what was saved
+      if (wasSaved !== isChecked) {
+        changedCount++;
+        console.log(`[DEBUG] Syncing task ${idx}: was=${wasSaved}, now=${isChecked}`);
+        syncPromises.push(
+          updateChecklistTask(currentUser.uid, idx, isChecked)
+            .then(result => {
+              console.log(`[DEBUG] Task ${idx} sync response:`, result);
+              return result;
+            })
+            .catch(err => {
+              console.error(`[ERROR] Error syncing task ${idx}:`, err);
+              // Continue even if one sync fails
+              return true;
+            })
+        );
       }
-    });
+    }
     
     // Wait for all syncs to complete
     if (syncPromises.length > 0) {
-      await Promise.all(syncPromises);
-      console.log('[DEBUG] All checklist changes synced to backend');
+      console.log(`[DEBUG] Syncing ${changedCount} changed tasks to backend...`);
+      const results = await Promise.all(syncPromises);
+      console.log('[DEBUG] All checklist changes synced to backend, results:', results);
+    } else {
+      console.log('[DEBUG] No checklist changes to sync');
     }
     
     return true;
@@ -759,7 +778,19 @@ locationSearch.addEventListener('blur', () => {
   }, 200);
 });
 
-checklist.addEventListener('change', () => {
+checklist.addEventListener('change', (e) => {
+  // Only allow changes on own dashboard
+  if (!currentUser?.uid || !displayUser || displayUser.id !== currentUser.uid) {
+    // Prevent the change from persisting
+    const checkbox = e.target;
+    if (checkbox.type === 'checkbox') {
+      console.warn('[WARNING] Attempt to modify checklist on someone elses dashboard prevented');
+      // Revert the change
+      checkbox.checked = !checkbox.checked;
+      alert('You can only manage your own checklist.');
+      return;
+    }
+  }
   updateChecklistSummary();
   resetInactivityTimer();
 });
@@ -781,6 +812,11 @@ checklist.addEventListener('click', (e) => {
 });
 
 function openAddTaskModal() {
+  // Only allow adding tasks to own dashboard
+  if (!currentUser?.uid || !displayUser || displayUser.id !== currentUser.uid) {
+    alert('You can only manage your own checklist.');
+    return;
+  }
   addTaskModal.classList.remove('hidden');
   taskDescription.focus();
 }
@@ -791,6 +827,12 @@ function closeAddTaskModal() {
 }
 
 function submitAddTask() {
+  // Only allow adding tasks to own dashboard
+  if (!currentUser?.uid || !displayUser || displayUser.id !== currentUser.uid) {
+    alert('You can only manage your own checklist.');
+    return;
+  }
+  
   const desc = taskDescription.value.trim();
   if (!desc) {
     alert('Please enter a task description.');
