@@ -538,7 +538,10 @@ async function updateEmployeeAssignment(employeeId, newManagerId, newMentorId) {
   try {
     console.log('[DEBUG] Updating employee assignment:', { employeeId, newManagerId, newMentorId, currentUserId: currentUser.uid });
     
-    const response = await fetch(`http://localhost:3000/api/users/${employeeId}`, {
+    const apiUrl = window.location.hostname === 'localhost'
+      ? 'http://localhost:3000/api'
+      : 'https://otg2026.onrender.com/api';
+    const response = await fetch(`${apiUrl}/users/${employeeId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

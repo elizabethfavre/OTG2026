@@ -5,7 +5,10 @@
  */
 
 // Set your backend URL
-const API_BASE_URL = 'http://localhost:3000/api'; // Use local backend for testing
+// Use Render deployment URL (works from any computer); fallback to localhost for local development
+const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:3000/api' 
+  : 'https://otg2026.onrender.com/api';
 
 let currentToken = null;
 let currentUser = null;
