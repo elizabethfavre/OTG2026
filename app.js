@@ -131,6 +131,18 @@ function updateSignupRoleFields() {
   }
 }
 
+// Check if user is a test account (to be hidden from selectors)
+function isTestAccount(user) {
+  const testEmails = [
+    'alex.manager@company.com',
+    'jordan.manager@company.com',
+    'casey.mentor@company.com',
+    'blake.mentor@company.com',
+    'sierra.emp@company.com'
+  ];
+  return testEmails.includes(user.email);
+}
+
 async function populateSupervisors() {
   // Load all users if not already loaded
   if (allUsers.length === 0) {
@@ -139,8 +151,8 @@ async function populateSupervisors() {
     console.log('Loaded users:', allUsers);
   }
 
-  // Populate mentor dropdown with available mentors (only active users)
-  const mentors = allUsers.filter(u => u.role === 'mentor' && u.isActive !== false);
+  // Populate mentor dropdown with available mentors (only active users, excluding test accounts)
+  const mentors = allUsers.filter(u => u.role === 'mentor' && u.isActive !== false && !isTestAccount(u));
   console.log('Available mentors:', mentors);
   signupMentor.innerHTML = '<option value="">-- No Mentor --</option>';
   mentors.forEach(m => {
@@ -150,8 +162,8 @@ async function populateSupervisors() {
     signupMentor.appendChild(option);
   });
 
-  // Populate manager dropdown with available managers (only active users)
-  const managers = allUsers.filter(u => u.role === 'manager' && u.isActive !== false);
+  // Populate manager dropdown with available managers (only active users, excluding test accounts)
+  const managers = allUsers.filter(u => u.role === 'manager' && u.isActive !== false && !isTestAccount(u));
   console.log('Available managers:', managers);
   signupManager.innerHTML = '<option value="">-- No Manager --</option>';
   managers.forEach(m => {
