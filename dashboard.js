@@ -784,18 +784,20 @@ locationSearch.addEventListener('blur', () => {
 });
 
 checklist.addEventListener('change', (e) => {
+  console.log('[CHECKBOX CHANGE] Event triggered, calling canModifyChecklist()');
   // Check if current user has permission to modify this checklist
   if (!canModifyChecklist()) {
     // Prevent the change from persisting
     const checkbox = e.target;
     if (checkbox.type === 'checkbox') {
-      console.warn('[WARNING] Attempt to modify checklist without permission prevented');
+      console.warn('[CHECKBOX CHANGE] Permission DENIED - reverting change');
       // Revert the change
       checkbox.checked = !checkbox.checked;
       alert('You do not have permission to modify this checklist.');
       return;
     }
   }
+  console.log('[CHECKBOX CHANGE] Permission granted - saving state');
   updateChecklistSummary();
   resetInactivityTimer();
 });
@@ -822,44 +824,45 @@ checklist.addEventListener('click', (e) => {
 });
 
 function canModifyChecklist() {
+  console.log('[DEBUG] canModifyChecklist called with:', {
+    currentUserUid: currentUser?.uid,
+    currentUserRole: currentUser?.role,
+    displayUserUid: displayUser?.id,
+    displayUserRole: displayUser?.role,
+    displayUserManagerId: displayUser?.managerId,
+    displayUserMentorId: displayUser?.mentorId
+  });
+  
   // Can modify own dashboard
   if (currentUser?.uid && displayUser && displayUser.id === currentUser.uid) {
-    console.log('[DEBUG canModifyChecklist] Owner access granted:', { currentUid: currentUser.uid, displayUserId: displayUser.id });
+    console.log('[SUCCESS] Owner access granted - it\'s your own dashboard');
     return true;
   }
   
   // Manager can modify direct reports (new_team_members)
-  if (currentUser?.role === 'manager' && displayUser?.role === 'new_team_member' && 
-      displayUser?.managerId === currentUser?.uid) {
-    console.log('[DEBUG canModifyChecklist] Manager access granted:', { 
-      currentRole: currentUser?.role,
-      displayRole: displayUser?.role, 
-      displayManagerId: displayUser?.managerId,
-      currentUid: currentUser?.uid
-    });
+  const isManager = currentUser?.role === 'manager';
+  const displayIsNewTeamMember = displayUser?.role === 'new_team_member';
+  const managerMatch = displayUser?.managerId === currentUser?.uid;
+  
+  if (isManager && displayIsNewTeamMember && managerMatch) {
+    console.log('[SUCCESS] Manager access granted - you are the manager');
     return true;
+  } else if (isManager) {
+    console.log('[DENIED] Manager check failed:', { isManager, displayIsNewTeamMember, managerMatch });
   }
   
   // Mentor can modify their mentees
-  if (currentUser?.role === 'mentor' && displayUser?.role === 'new_team_member' && 
-      displayUser?.mentorId === currentUser?.uid) {
-    console.log('[DEBUG canModifyChecklist] Mentor access granted:', { 
-      currentRole: currentUser?.role,
-      displayRole: displayUser?.role, 
-      displayMentorId: displayUser?.mentorId,
-      currentUid: currentUser?.uid
-    });
+  const isMentor = currentUser?.role === 'mentor';
+  const mentorMatch = displayUser?.mentorId === currentUser?.uid;
+  
+  if (isMentor && displayIsNewTeamMember && mentorMatch) {
+    console.log('[SUCCESS] Mentor access granted - you are the mentor');
     return true;
+  } else if (isMentor) {
+    console.log('[DENIED] Mentor check failed:', { isMentor, displayIsNewTeamMember, mentorMatch });
   }
   
-  console.log('[DEBUG canModifyChecklist] Access DENIED:', { 
-    currentRole: currentUser?.role,
-    displayRole: displayUser?.role,
-    displayManagerId: displayUser?.managerId,
-    displayMentorId: displayUser?.mentorId,
-    currentUid: currentUser?.uid,
-    displayUserId: displayUser?.id
-  });
+  console.log('[DENIED] No permission match found');
   return false;
 }
 
