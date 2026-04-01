@@ -131,7 +131,7 @@ function updateSignupRoleFields() {
   }
 }
 
-// Check if user is a test account (to be hidden from selectors)
+// Check if user is a test account (known test account emails)
 function isTestAccount(user) {
   const testEmails = [
     'alex.manager@company.com',
@@ -143,6 +143,20 @@ function isTestAccount(user) {
   return testEmails.includes(user.email);
 }
 
+// Check if current user is a test user (if so, show all accounts for testing)
+function isCurrentUserTestUser() {
+  const currentUserData = currentUser || (sessionStorage.getItem('currentUser') ? JSON.parse(sessionStorage.getItem('currentUser')) : null);
+  if (!currentUserData) return false;
+  
+  // Check if current user is one of the known test accounts
+  if (isTestAccount(currentUserData)) return true;
+  
+  // Also check if username contains test indicators
+  const testIndicators = ['test', 'auto_', 'dash', 'mtr_', 'emp_', 'mgr_'];
+  const username = currentUserData.username || '';
+  return testIndicators.some(indicator => username.toLowerCase().includes(indicator));
+}
+
 async function populateSupervisors() {
   // Load all users if not already loaded
   if (allUsers.length === 0) {
@@ -151,8 +165,15 @@ async function populateSupervisors() {
     console.log('Loaded users:', allUsers);
   }
 
-  // Populate mentor dropdown with available mentors (only active users, excluding test accounts)
-  const mentors = allUsers.filter(u => u.role === 'mentor' && u.isActive !== false && !isTestAccount(u));
+  // Determine if current user is a test user - if so, show all mentors; otherwise hide test accounts
+  const hideTestAccounts = !isCurrentUserTestUser();
+  console.log('Hide test accounts from selectors:', hideTestAccounts);
+
+  // Populate mentor dropdown with available mentors (only active users)
+  let mentors = allUsers.filter(u => u.role === 'mentor' && u.isActive !== false);
+  if (hideTestAccounts) {
+    mentors = mentors.filter(u => !isTestAccount(u));
+  }
   console.log('Available mentors:', mentors);
   signupMentor.innerHTML = '<option value="">-- No Mentor --</option>';
   mentors.forEach(m => {
@@ -162,8 +183,11 @@ async function populateSupervisors() {
     signupMentor.appendChild(option);
   });
 
-  // Populate manager dropdown with available managers (only active users, excluding test accounts)
-  const managers = allUsers.filter(u => u.role === 'manager' && u.isActive !== false && !isTestAccount(u));
+  // Populate manager dropdown with available managers (only active users)
+  let managers = allUsers.filter(u => u.role === 'manager' && u.isActive !== false);
+  if (hideTestAccounts) {
+    managers = managers.filter(u => !isTestAccount(u));
+  }
   console.log('Available managers:', managers);
   signupManager.innerHTML = '<option value="">-- No Manager --</option>';
   managers.forEach(m => {
