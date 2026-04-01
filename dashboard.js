@@ -824,21 +824,42 @@ checklist.addEventListener('click', (e) => {
 function canModifyChecklist() {
   // Can modify own dashboard
   if (currentUser?.uid && displayUser && displayUser.id === currentUser.uid) {
+    console.log('[DEBUG canModifyChecklist] Owner access granted:', { currentUid: currentUser.uid, displayUserId: displayUser.id });
     return true;
   }
   
   // Manager can modify direct reports (new_team_members)
   if (currentUser?.role === 'manager' && displayUser?.role === 'new_team_member' && 
       displayUser?.managerId === currentUser?.uid) {
+    console.log('[DEBUG canModifyChecklist] Manager access granted:', { 
+      currentRole: currentUser?.role,
+      displayRole: displayUser?.role, 
+      displayManagerId: displayUser?.managerId,
+      currentUid: currentUser?.uid
+    });
     return true;
   }
   
   // Mentor can modify their mentees
   if (currentUser?.role === 'mentor' && displayUser?.role === 'new_team_member' && 
       displayUser?.mentorId === currentUser?.uid) {
+    console.log('[DEBUG canModifyChecklist] Mentor access granted:', { 
+      currentRole: currentUser?.role,
+      displayRole: displayUser?.role, 
+      displayMentorId: displayUser?.mentorId,
+      currentUid: currentUser?.uid
+    });
     return true;
   }
   
+  console.log('[DEBUG canModifyChecklist] Access DENIED:', { 
+    currentRole: currentUser?.role,
+    displayRole: displayUser?.role,
+    displayManagerId: displayUser?.managerId,
+    displayMentorId: displayUser?.mentorId,
+    currentUid: currentUser?.uid,
+    displayUserId: displayUser?.id
+  });
   return false;
 }
 
@@ -945,21 +966,36 @@ onAuthStateChanged(async (user) => {
   const viewUid = urlParams.get('view');
 
   displayUser = currentUser;
+  console.log('[DEBUG] Initial displayUser set to currentUser:', { uid: currentUser.uid, role: currentUser.role });
   
   if (viewUid && viewUid !== currentUser.uid) {
+    console.log('[DEBUG] Viewing another user, viewUid:', viewUid);
     const requestedUser = getUserByUIDLocal(viewUid);
+    console.log('[DEBUG] Requested user found:', requestedUser ? { uid: requestedUser.id, role: requestedUser.role, managerId: requestedUser.managerId, mentorId: requestedUser.mentorId } : 'NOT FOUND');
+    
     if (requestedUser) {
       // Check if current user has permission to view this user
       const directReports = getDirectReports(currentUser.uid);
       const mentees = getMenteesByMentor(currentUser.uid);
       const newEmployees = getNewEmployeesManagedByManager(currentUser.uid);
+      
+      console.log('[DEBUG] Permission check details:', {
+        currentRole: currentUser.role,
+        directReports: directReports.map(r => ({ id: r.id, username: r.username })),
+        mentees: mentees.map(m => ({ id: m.id, username: m.username })),
+        newEmployees: newEmployees.map(e => ({ id: e.id, username: e.username }))
+      });
+      
       const canView = 
         (currentUser.role === 'manager' && directReports.some(r => r.id === viewUid)) ||
         (currentUser.role === 'mentor' && mentees.some(r => r.id === viewUid)) ||
         (currentUser.role === 'manager' && requestedUser.role === 'mentor' && newEmployees.some(emp => emp.mentorId === viewUid));
       
+      console.log('[DEBUG] canView result:', canView);
+      
       if (canView) {
         displayUser = requestedUser;
+        console.log('[DEBUG] Permission granted, displayUser set to:', { uid: displayUser.id, role: displayUser.role, managerId: displayUser.managerId, mentorId: displayUser.mentorId });
         // Add a navigation/options header section
         const dashboardGrid = document.querySelector('.dashboard-grid');
         const navContainer = document.createElement('div');
