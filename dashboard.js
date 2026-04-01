@@ -948,14 +948,11 @@ onAuthStateChanged(async (user) => {
   // Determine which user's dashboard to display
   const urlParams = new URLSearchParams(window.location.search);
   const viewUid = urlParams.get('view');
-  console.log('[DEBUG] URL view parameter:', viewUid);
 
   displayUser = currentUser;
   
   if (viewUid && viewUid !== currentUser.uid) {
-    console.log('[DEBUG] Attempting to view user:', viewUid);
     const requestedUser = getUserByUIDLocal(viewUid);
-    console.log('[DEBUG] Requested user lookup result:', requestedUser ? `Found: ${requestedUser.username}` : 'NOT FOUND');
     
     if (requestedUser) {
       // Check if current user has permission to view this user
@@ -968,11 +965,8 @@ onAuthStateChanged(async (user) => {
         (currentUser.role === 'mentor' && mentees.some(r => r.id === viewUid)) ||
         (currentUser.role === 'manager' && requestedUser.role === 'mentor' && newEmployees.some(emp => emp.mentorId === viewUid));
       
-      console.log('[DEBUG] Permission check - canView:', canView, '| currentRole:', currentUser.role, '| requestedUserRole:', requestedUser.role);
-      
       if (canView) {
         displayUser = requestedUser;
-        console.log('[DEBUG] Permission granted - viewing user:', displayUser.username);
         // Add a navigation/options header section
         const dashboardGrid = document.querySelector('.dashboard-grid');
         const navContainer = document.createElement('div');
