@@ -288,7 +288,12 @@ async function syncChecklistChangesToBackend() {
   try {
     // Save all unsaved checklist changes to backend before logout
     if (!currentUser?.uid) return true; // No user to save for
-    if (!displayUser || displayUser.id !== currentUser.uid) return true; // Not on own dashboard
+    
+    // Only sync if user has permission to modify this checklist
+    if (!canModifyChecklist()) {
+      console.log('[DEBUG] No permission to modify checklist, skipping sync');
+      return true;
+    }
     
     console.log('[DEBUG] Syncing checklist changes to backend before logout...');
     
@@ -300,7 +305,7 @@ async function syncChecklistChangesToBackend() {
     });
     
     // Get saved state to find what changed
-    const raw = localStorage.getItem(getChecklistKey(currentUser.uid));
+    const raw = localStorage.getItem(getChecklistKey(displayUser.id));
     const savedState = raw ? JSON.parse(raw) : [];
     
     console.log('[DEBUG] Current state:', currentState.length, 'items');
@@ -319,7 +324,7 @@ async function syncChecklistChangesToBackend() {
         changedCount++;
         console.log(`[DEBUG] Syncing task ${idx}: was=${wasSaved}, now=${isChecked}`);
         syncPromises.push(
-          updateChecklistTask(currentUser.uid, idx, isChecked)
+          updateChecklistTask(displayUser.id, idx, isChecked)
             .then(result => {
               console.log(`[DEBUG] Task ${idx} sync response:`, result);
               return result;
@@ -779,15 +784,15 @@ locationSearch.addEventListener('blur', () => {
 });
 
 checklist.addEventListener('change', (e) => {
-  // Only allow changes on own dashboard
-  if (!currentUser?.uid || !displayUser || displayUser.id !== currentUser.uid) {
+  // Check if current user has permission to modify this checklist
+  if (!canModifyChecklist()) {
     // Prevent the change from persisting
     const checkbox = e.target;
     if (checkbox.type === 'checkbox') {
-      console.warn('[WARNING] Attempt to modify checklist on someone elses dashboard prevented');
+      console.warn('[WARNING] Attempt to modify checklist without permission prevented');
       // Revert the change
       checkbox.checked = !checkbox.checked;
-      alert('You can only manage your own checklist.');
+      alert('You do not have permission to modify this checklist.');
       return;
     }
   }
@@ -795,9 +800,14 @@ checklist.addEventListener('change', (e) => {
   resetInactivityTimer();
 });
 
-// Handle delete task button clicks using event delegation
+  // Handle delete task button clicks using event delegation
 checklist.addEventListener('click', (e) => {
   if (e.target.classList.contains('delete-task-btn')) {
+    if (!canModifyChecklist()) {
+      alert('You do not have permission to modify this checklist.');
+      return;
+    }
+    
     const uid = e.target.dataset.uid;
     const idx = parseInt(e.target.dataset.idx, 10);
     if (uid && idx >= 0) {
@@ -811,10 +821,30 @@ checklist.addEventListener('click', (e) => {
   }
 });
 
+function canModifyChecklist() {
+  // Can modify own dashboard
+  if (currentUser?.uid && displayUser && displayUser.id === currentUser.uid) {
+    return true;
+  }
+  
+  // Manager can modify direct reports (new_team_members)
+  if (currentUser?.role === 'manager' && displayUser?.role === 'new_team_member' && 
+      displayUser?.managerId === currentUser?.uid) {
+    return true;
+  }
+  
+  // Mentor can modify their mentees
+  if (currentUser?.role === 'mentor' && displayUser?.role === 'new_team_member' && 
+      displayUser?.mentorId === currentUser?.uid) {
+    return true;
+  }
+  
+  return false;
+}
+
 function openAddTaskModal() {
-  // Only allow adding tasks to own dashboard
-  if (!currentUser?.uid || !displayUser || displayUser.id !== currentUser.uid) {
-    alert('You can only manage your own checklist.');
+  if (!canModifyChecklist()) {
+    alert('You do not have permission to modify this checklist.');
     return;
   }
   addTaskModal.classList.remove('hidden');
@@ -827,9 +857,8 @@ function closeAddTaskModal() {
 }
 
 function submitAddTask() {
-  // Only allow adding tasks to own dashboard
-  if (!currentUser?.uid || !displayUser || displayUser.id !== currentUser.uid) {
-    alert('You can only manage your own checklist.');
+  if (!canModifyChecklist()) {
+    alert('You do not have permission to modify this checklist.');
     return;
   }
   
