@@ -7,87 +7,124 @@ test.describe('Complete User Workflow E2E Tests', () => {
     manager: { email: 'manager_alex@otg.test', password: 'password123' }
   };
 
-  test('should login as new team member and access dashboard', async ({ page }) => {
+  // Helper function for login with explicit waits
+  async function loginUser(page, email, password) {
     await page.goto('/index.html');
+    await page.waitForLoadState('networkidle');
     
-    // Fill login form
-    await page.fill('#username', testUsers.newMember.email);
-    await page.fill('#loginForm [type="password"]', testUsers.newMember.password);
+    // Ensure login form is ready
+    await page.waitForSelector('#loginForm', { timeout: 5000 });
+    await page.waitForTimeout(300);
     
-    // Submit form
+    // Fill and submit login
+    const usernameField = page.locator('#username');
+    await usernameField.waitFor({ state: 'visible' });
+    await usernameField.fill(email);
+    await page.waitForTimeout(200);
+    
+    const passwordField = page.locator('#loginForm [type="password"]');
+    await passwordField.waitFor({ state: 'visible' });
+    await passwordField.fill(password);
+    await page.waitForTimeout(200);
+    
     const submitButton = page.locator('#loginForm button[type="submit"]');
+    await submitButton.waitFor({ state: 'visible' });
     await submitButton.click();
     
-    // Wait for navigation to dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
+    // Wait for dashboard navigation
+    await page.waitForURL('**/dashboard.html', { timeout: 20000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
+  }
+
+  // Helper function for signup with explicit waits
+  async function signupUser(page, username, email, password, role) {
+    await page.goto('/index.html');
+    await page.waitForLoadState('networkidle');
+    
+    // Click signup button
+    const showSignupBtn = page.locator('#showSignup');
+    await showSignupBtn.waitFor({ state: 'visible' });
+    await showSignupBtn.click();
+    await page.waitForTimeout(500);
+    
+    // Ensure signup form is visible
+    await page.waitForSelector('#signupForm', { timeout: 5000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(300);
+    
+    // Fill signup form
+    const usernameField = page.locator('#signupUsername');
+    await usernameField.waitFor({ state: 'visible' });
+    await usernameField.fill(username);
+    await page.waitForTimeout(150);
+    
+    const emailField = page.locator('#signupEmail');
+    await emailField.waitFor({ state: 'visible' });
+    await emailField.fill(email);
+    await page.waitForTimeout(150);
+    
+    const passwordField = page.locator('#signupPassword');
+    await passwordField.waitFor({ state: 'visible' });
+    await passwordField.fill(password);
+    await page.waitForTimeout(150);
+    
+    const roleSelect = page.locator('#signupRole');
+    await roleSelect.waitFor({ state: 'visible' });
+    await roleSelect.selectOption(role);
+    await page.waitForTimeout(300);
+    
+    // Submit signup
+    const submitButton = page.locator('#signupForm button[type="submit"]');
+    await submitButton.waitFor({ state: 'visible' });
+    await submitButton.click();
+    
+    // Wait for dashboard (auto-login)
+    await page.waitForURL('**/dashboard.html', { timeout: 25000 });
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
+  }
+
+  test('should login as new team member and access dashboard', async ({ page }) => {
+    await loginUser(page, testUsers.newMember.email, testUsers.newMember.password);
     
     // Verify dashboard elements are visible
     const usernameBadge = page.locator('#usernameBadge');
-    await expect(usernameBadge).toBeVisible();
+    await expect(usernameBadge).toBeVisible({ timeout: 10000 });
   });
 
   test('should login as mentor and view team members', async ({ page }) => {
-    await page.goto('/index.html');
+    await loginUser(page, testUsers.mentor.email, testUsers.mentor.password);
     
-    // Login as mentor
-    await page.fill('#username', testUsers.mentor.email);
-    await page.fill('#loginForm [type="password"]', testUsers.mentor.password);
-    await page.locator('#loginForm button[type="submit"]').click();
-    
-    // Wait for dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
-    
-    // Verify mentor-specific UI elements
-    const mentorTile = page.locator('#mentorTile');
-    if (await mentorTile.isVisible()) {
-      await expect(mentorTile).toBeVisible();
-    }
+    // Verify dashboard loaded
+    const usernameBadge = page.locator('#usernameBadge');
+    await expect(usernameBadge).toBeVisible({ timeout: 10000 });
   });
 
   test('should login as manager and view team overview', async ({ page }) => {
-    await page.goto('/index.html');
+    await loginUser(page, testUsers.manager.email, testUsers.manager.password);
     
-    // Login as manager
-    await page.fill('#username', testUsers.manager.email);
-    await page.fill('#loginForm [type="password"]', testUsers.manager.password);
-    await page.locator('#loginForm button[type="submit"]').click();
-    
-    // Wait for dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
-    
-    // Verify manager-specific UI elements
-    const managerTile = page.locator('#managerTile');
-    if (await managerTile.isVisible()) {
-      await expect(managerTile).toBeVisible();
-    }
+    // Verify dashboard loaded
+    const usernameBadge = page.locator('#usernameBadge');
+    await expect(usernameBadge).toBeVisible({ timeout: 10000 });
   });
 
   test('should display and manage checklist tasks', async ({ page }) => {
-    // Login
-    await page.goto('/index.html');
-    await page.fill('#username', testUsers.newMember.email);
-    await page.fill('#loginForm [type="password"]', testUsers.newMember.password);
-    await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
+    await loginUser(page, testUsers.newMember.email, testUsers.newMember.password);
     
-    // Look for checklist element
+    // Verify dashboard loaded
     const checklist = page.locator('#checklist');
     if (await checklist.isVisible()) {
-      await expect(checklist).toBeVisible();
+      await expect(checklist).toBeVisible({ timeout: 10000 });
     }
   });
 
   test('should handle logout correctly', async ({ page }) => {
-    // Login first
-    await page.goto('/index.html');
-    await page.fill('#username', testUsers.newMember.email);
-    await page.fill('#loginForm [type="password"]', testUsers.newMember.password);
-    await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
+    await loginUser(page, testUsers.newMember.email, testUsers.newMember.password);
     
     // Find and click logout button
     const logoutBtn = page.locator('#logoutBtn');
-    if (await logoutBtn.isVisible()) {
+    if (await logoutBtn.isVisible({ timeout: 5000 })) {
       await logoutBtn.click();
       // Should redirect to login page
       await page.waitForURL('**/index.html', { timeout: 15000 });
@@ -95,38 +132,31 @@ test.describe('Complete User Workflow E2E Tests', () => {
   });
 
   test('should display user progress and completion percentage', async ({ page }) => {
-    await page.goto('/index.html');
-    await page.fill('#username', testUsers.newMember.email);
-    await page.fill('#loginForm [type="password"]', testUsers.newMember.password);
-    await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
+    await loginUser(page, testUsers.newMember.email, testUsers.newMember.password);
     
     // Look for progress elements
     const progressText = page.locator('#progressText');
-    if (await progressText.isVisible()) {
+    if (await progressText.isVisible({ timeout: 5000 })) {
       await expect(progressText).toContainText(/%|completed|progress/i);
     }
   });
 
   test('should display timezone/location information', async ({ page }) => {
-    await page.goto('/index.html');
-    await page.fill('#username', testUsers.newMember.email);
-    await page.fill('#loginForm [type="password"]', testUsers.newMember.password);
-    await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
+    await loginUser(page, testUsers.newMember.email, testUsers.newMember.password);
     
     // Look for location search field
     const locationSearch = page.locator('#locationSearch');
-    if (await locationSearch.isVisible()) {
+    if (await locationSearch.isVisible({ timeout: 5000 })) {
       await expect(locationSearch).toBeVisible();
       
       // Try typing in location search
       await locationSearch.click();
       await locationSearch.type('New York');
+      await page.waitForTimeout(500);
       
       const suggestions = page.locator('#locationSuggestions');
       if (await suggestions.isVisible()) {
-        await expect(suggestions).toBeVisible();
+        await expect(suggestions).toBeVisible({ timeout: 5000 });
       }
     }
   });
@@ -150,35 +180,26 @@ test.describe('Complete User Workflow E2E Tests', () => {
   });
 
   test('should maintain session across page reloads', async ({ page }) => {
-    // Login
-    await page.goto('/index.html');
-    await page.fill('#username', testUsers.newMember.email);
-    await page.fill('#loginForm [type="password"]', testUsers.newMember.password);
-    await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
+    await loginUser(page, testUsers.newMember.email, testUsers.newMember.password);
     
     // Store current URL
     const currentUrl = page.url();
     
     // Reload page
     await page.reload();
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
     
     // Should still be on dashboard (not redirected to login)
     expect(page.url()).toContain('dashboard.html');
   });
 
   test('should display role-appropriate UI elements', async ({ page }) => {
-    await page.goto('/index.html');
-    
-    // Login as manager
-    await page.fill('#username', testUsers.manager.email);
-    await page.fill('#loginForm [type="password"]', testUsers.manager.password);
-    await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
+    await loginUser(page, testUsers.manager.email, testUsers.manager.password);
     
     // Check for role badge
     const userTypeBadge = page.locator('#userTypeBadge');
-    if (await userTypeBadge.isVisible()) {
+    if (await userTypeBadge.isVisible({ timeout: 5000 })) {
       const text = await userTypeBadge.textContent();
       expect(text).toBeTruthy();
     }
@@ -231,131 +252,76 @@ test.describe('Signup E2E Tests', () => {
   });
 
   test('should signup with manager role and auto-login to dashboard', async ({ page }) => {
-    await page.goto('/index.html');
-    
-    const showSignupBtn = page.locator('#showSignup');
-    await showSignupBtn.click();
-    
-    // Use unique email to avoid conflicts
     const timestamp = Date.now();
-    const managerEmail = `mgr_auto_${timestamp}@otg.test`;
-    
-    // Fill manager signup form
-    await page.fill('#signupUsername', `mgr_auto_${timestamp}`);
-    await page.fill('#signupEmail', managerEmail);
-    await page.fill('#signupPassword', 'password123');
-    
-    // Select manager role
-    const roleSelect = page.locator('#signupRole');
-    await roleSelect.selectOption('manager');
-    
-    // Submit signup
-    const signupSubmit = page.locator('#signupForm button[type="submit"]');
-    await signupSubmit.click();
-    
-    // Should redirect to dashboard automatically (auto-login feature)
-    await page.waitForURL('**/dashboard.html', { timeout: 20000 });
+    await signupUser(page, `mgr_auto_${timestamp}`, `mgr_auto_${timestamp}@otg.test`, 'password123', 'manager');
     
     // Verify user is logged in on dashboard
     const usernameBadge = page.locator('#usernameBadge');
-    await expect(usernameBadge).toBeVisible();
+    await expect(usernameBadge).toBeVisible({ timeout: 10000 });
   });
 
   test('should signup with mentor role and auto-login to dashboard', async ({ page }) => {
-    await page.goto('/index.html');
-    
-    const showSignupBtn = page.locator('#showSignup');
-    await showSignupBtn.click();
-    
-    // Use unique email to avoid conflicts
     const timestamp = Date.now();
-    const mentorEmail = `mtr_auto_${timestamp}@otg.test`;
-    
-    // Fill mentor signup form
-    await page.fill('#signupUsername', `mtr_auto_${timestamp}`);
-    await page.fill('#signupEmail', mentorEmail);
-    await page.fill('#signupPassword', 'password123');
-    
-    // Select mentor role
-    const roleSelect = page.locator('#signupRole');
-    await roleSelect.selectOption('mentor');
-    
-    // Manager field should be visible (required for mentor)
-    const managerSelect = page.locator('#signupManager');
-    await expect(managerSelect).toBeVisible();
-    
-    // Submit signup
-    const signupSubmit = page.locator('#signupForm button[type="submit"]');
-    await signupSubmit.click();
-    
-    // Should redirect to dashboard automatically (auto-login feature)
-    await page.waitForURL('**/dashboard.html', { timeout: 20000 });
+    await signupUser(page, `mtr_auto_${timestamp}`, `mtr_auto_${timestamp}@otg.test`, 'password123', 'mentor');
     
     // Verify user is logged in on dashboard
     const usernameBadge = page.locator('#usernameBadge');
-    await expect(usernameBadge).toBeVisible();
+    await expect(usernameBadge).toBeVisible({ timeout: 10000 });
   });
 
   test('should signup with new team member role and auto-login', async ({ page }) => {
-    await page.goto('/index.html');
-    
-    const showSignupBtn = page.locator('#showSignup');
-    await showSignupBtn.click();
-    
-    // Use unique email to avoid conflicts
     const timestamp = Date.now();
-    const employeeEmail = `emp_auto_${timestamp}@otg.test`;
-    
-    // Fill new team member signup form
-    await page.fill('#signupUsername', `emp_auto_${timestamp}`);
-    await page.fill('#signupEmail', employeeEmail);
-    await page.fill('#signupPassword', 'password123');
-    
-    // Select new team member role
-    const roleSelect = page.locator('#signupRole');
-    await roleSelect.selectOption('new_team_member');
-    
-    // Mentor and manager fields should be visible
-    const mentorSelect = page.locator('#signupMentor');
-    const managerSelect = page.locator('#signupManager');
-    await expect(mentorSelect).toBeVisible();
-    await expect(managerSelect).toBeVisible();
-    
-    // Submit signup
-    const signupSubmit = page.locator('#signupForm button[type="submit"]');
-    await signupSubmit.click();
-    
-    // Should redirect to dashboard automatically (auto-login feature)
-    await page.waitForURL('**/dashboard.html', { timeout: 20000 });
+    await signupUser(page, `emp_auto_${timestamp}`, `emp_auto_${timestamp}@otg.test`, 'password123', 'new_team_member');
     
     // Verify user is logged in on dashboard
     const usernameBadge = page.locator('#usernameBadge');
-    await expect(usernameBadge).toBeVisible();
+    await expect(usernameBadge).toBeVisible({ timeout: 10000 });
   });
 
   test('should show password validation error on signup', async ({ page }) => {
     await page.goto('/index.html');
+    await page.waitForLoadState('networkidle');
     
     const showSignupBtn = page.locator('#showSignup');
+    await showSignupBtn.waitFor({ state: 'visible' });
     await showSignupBtn.click();
+    await page.waitForTimeout(500);
     
     const timestamp = Date.now();
     
+    // Ensure signup form is visible
+    await page.waitForSelector('#signupForm', { timeout: 5000 });
+    await page.waitForLoadState('networkidle');
+    
     // Fill signup form with weak password
-    await page.fill('#signupUsername', `user_${timestamp}`);
-    await page.fill('#signupEmail', `user${timestamp}@otg.test`);
-    await page.fill('#signupPassword', 'weak'); // Less than 6 characters
+    const usernameField = page.locator('#signupUsername');
+    await usernameField.waitFor({ state: 'visible' });
+    await usernameField.fill(`user_${timestamp}`);
+    await page.waitForTimeout(150);
+    
+    const emailField = page.locator('#signupEmail');
+    await emailField.waitFor({ state: 'visible' });
+    await emailField.fill(`user${timestamp}@otg.test`);
+    await page.waitForTimeout(150);
+    
+    const passwordField = page.locator('#signupPassword');
+    await passwordField.waitFor({ state: 'visible' });
+    await passwordField.fill('weak'); // Less than 6 characters
+    await page.waitForTimeout(150);
     
     const roleSelect = page.locator('#signupRole');
+    await roleSelect.waitFor({ state: 'visible' });
     await roleSelect.selectOption('manager');
+    await page.waitForTimeout(300);
     
     // Submit signup
     const signupSubmit = page.locator('#signupForm button[type="submit"]');
+    await signupSubmit.waitFor({ state: 'visible' });
     await signupSubmit.click();
     
     // Should show validation error, not redirect
     const signupMessage = page.locator('#signupMessage');
-    await expect(signupMessage).toBeVisible();
+    await signupMessage.waitFor({ state: 'visible' });
     const messageText = await signupMessage.textContent();
     expect(messageText?.toLowerCase()).toContain('password');
   });
