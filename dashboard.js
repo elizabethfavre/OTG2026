@@ -114,6 +114,8 @@ const SUCCESS_MESSAGES = {
 
 let inactivityTimer = null;
 const INACTIVITY_LIMIT = 10 * 60 * 1000; // 10 minutes
+let autoSyncInterval = null;
+const AUTO_SYNC_INTERVAL = 2 * 60 * 1000; // Auto-save every 2 minutes
 
 function getChecklistKey(uid) {
   return `${STORAGE_KEYS.checklistPrefix}${uid}`;
