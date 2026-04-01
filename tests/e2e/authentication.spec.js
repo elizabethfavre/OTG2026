@@ -99,8 +99,8 @@ test.describe('Authentication E2E Tests', () => {
 
   test('should login with valid credentials', async ({ page }) => {
     // Fill login form with valid test credentials
-    await page.fill('#username', 'demo@example.com');
-    await page.fill('#loginForm [type="password"]', 'demo123!');
+    await page.fill('#username', 'alex.manager@company.com');
+    await page.fill('#loginForm [type="password"]', 'MgrAlex#2026!');
     
     // Submit form
     const submitButton = page.locator('#loginForm button[type="submit"]');

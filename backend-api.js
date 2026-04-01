@@ -5,7 +5,7 @@
  */
 
 // Set your backend URL
-const API_BASE_URL = 'https://otg2026.onrender.com/api';
+const API_BASE_URL = 'http://localhost:3000/api'; // Use local backend for testing
 
 let currentToken = null;
 let currentUser = null;
@@ -42,28 +42,35 @@ export async function backendSignUp(email, password, username, role, manager, me
 
 export async function backendSignIn(email, password) {
   try {
+    console.log('[DEBUG] Attempting login for email:', email);
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
 
+    console.log('[DEBUG] Login response status:', response.status);
+    
     if (!response.ok) {
       const error = await response.json();
+      console.error('[ERROR] Login failed with status', response.status, ':', error);
       return { success: false, message: error.error };
     }
 
     const data = await response.json();
+    console.log('[DEBUG] Login successful, user data received:', { uid: data.uid, email: data.email });
+    
     currentToken = data.token;
     currentUser = data;
 
     // Store in session
     sessionStorage.setItem('authToken', data.token);
     sessionStorage.setItem('currentUser', JSON.stringify(data));
+    console.log('[DEBUG] Session data stored in sessionStorage');
 
     return { success: true, user: data };
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('[ERROR] Login fetch error:', error.message, error);
     return { success: false, message: error.message };
   }
 }

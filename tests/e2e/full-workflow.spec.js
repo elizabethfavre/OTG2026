@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Complete User Workflow E2E Tests', () => {
   const testUsers = {
-    newMember: { email: 'employee_sierra@otg.test', password: 'password123' },
-    mentor: { email: 'mentor_casey@otg.test', password: 'password123' },
-    manager: { email: 'manager_alex@otg.test', password: 'password123' }
+    newMember: { email: 'sierra.emp@company.com', password: 'EmpSierra#2026!' },
+    mentor: { email: 'casey.mentor@company.com', password: 'MentorCasey#2026!' },
+    manager: { email: 'alex.manager@company.com', password: 'MgrAlex#2026!' }
   };
 
   // Helper function for login with explicit waits

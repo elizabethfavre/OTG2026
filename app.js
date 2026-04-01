@@ -75,18 +75,27 @@ loginForm.addEventListener('submit', async (event) => {
   const email = loginForm.username.value.trim(); // Accept email as username
   const password = loginForm.password.value;
 
+  console.log('[DEBUG] Login form submitted for:', email);
+
   try {
     const result = await backendSignIn(email, password);
+    console.log('[DEBUG] Login result:', { success: result.success });
+    
     if (result.success) {
+      console.log('[DEBUG] Login successful, redirecting to dashboard...');
       // Auth state listener will handle navigation
       setTimeout(() => {
-        window.location.href = 'dashboard.html';
+        const dashboardPath = window.location.origin + '/dashboard.html';
+        console.log('[DEBUG] Navigating to:', dashboardPath);
+        window.location.href = '/dashboard.html';
       }, 500);
     } else {
+      console.error('[ERROR] Login failed:', result.message);
       loginError.textContent = result.message || 'Login failed.';
       loginError.classList.remove('hidden');
     }
   } catch (err) {
+    console.error('[ERROR] Login exception:', err);
     loginError.textContent = 'An error occurred during login.';
     loginError.classList.remove('hidden');
   }

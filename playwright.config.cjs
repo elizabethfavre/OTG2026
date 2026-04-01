@@ -13,20 +13,31 @@ module.exports = defineConfig({
     baseURL: 'http://localhost:5500',
     trace: 'on-first-retry',
     navigationTimeout: 30000,
+    // Handle HTTPS/external API calls (needed for backend API on Render)
+    ignoreHTTPSErrors: true,
   },
 
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        ignoreHTTPSErrors: true,
+      },
     },
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: { 
+        ...devices['Desktop Firefox'],
+        ignoreHTTPSErrors: true,
+      },
     },
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: { 
+        ...devices['Desktop Safari'],
+        ignoreHTTPSErrors: true,
+      },
     },
   ],
 
