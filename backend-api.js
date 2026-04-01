@@ -10,6 +10,8 @@ const API_BASE_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:3000/api' 
   : 'https://otg2026.onrender.com/api';
 
+console.log('[DEBUG] API_BASE_URL set to:', API_BASE_URL);
+
 let currentToken = null;
 let currentUser = null;
 
@@ -224,11 +226,15 @@ export function onAuthStateChanged(callback) {
   const token = sessionStorage.getItem('authToken');
   const userJson = sessionStorage.getItem('currentUser');
 
+  console.log('[DEBUG] onAuthStateChanged called, checking sessionStorage:', { hasToken: !!token, hasUser: !!userJson });
+
   if (token && userJson) {
     currentToken = token;
     currentUser = JSON.parse(userJson);
+    console.log('[DEBUG] User found in sessionStorage:', { uid: currentUser.uid, email: currentUser.email });
     callback(currentUser);
   } else {
+    console.log('[DEBUG] No user in sessionStorage');
     callback(null);
   }
 

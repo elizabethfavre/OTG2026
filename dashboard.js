@@ -779,18 +779,29 @@ tabBtns.forEach(btn => {
 
 // Listen for auth state and initialize dashboard
 onAuthStateChanged(async (user) => {
+  console.log('[DEBUG] Dashboard: onAuthStateChanged triggered with user:', user ? { uid: user.uid, email: user.email } : 'null');
+  
   if (!user) {
     // Not authenticated, redirect to login
+    console.log('[DEBUG] No user authenticated, redirecting to index.html');
     window.location.href = 'index.html';
     return;
   }
 
+  console.log('[DEBUG] Dashboard: User authenticated, initializing dashboard...');
   // User data is already in currentUser from backend
   currentUser = user;
   sessionStorage.setItem('app_session_user', JSON.stringify({ uid: user.uid, email: user.email, username: user.username, role: user.role }));
 
   // Load all users for the app
-  await loadAllUsersFromFirebase();
+  console.log('[DEBUG] Dashboard: Loading users from API...');
+  try {
+    await loadAllUsersFromFirebase();
+    console.log('[DEBUG] Dashboard: Users loaded successfully:', allUsers.length, 'users');
+  } catch (err) {
+    console.error('[ERROR] Dashboard: Failed to load users:', err);
+    // Continue anyway - we can still show the dashboard with minimal functionality
+  }
 
   // Determine which user's dashboard to display
   const urlParams = new URLSearchParams(window.location.search);
