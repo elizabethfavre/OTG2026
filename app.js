@@ -174,6 +174,8 @@ async function populateSupervisors() {
   if (hideTestAccounts) {
     mentors = mentors.filter(u => !isTestAccount(u));
   }
+  // Sort mentors alphabetically by username
+  mentors.sort((a, b) => (a.username || '').localeCompare(b.username || ''));
   console.log('Available mentors:', mentors);
   signupMentor.innerHTML = '<option value="">-- No Mentor --</option>';
   mentors.forEach(m => {
@@ -188,6 +190,8 @@ async function populateSupervisors() {
   if (hideTestAccounts) {
     managers = managers.filter(u => !isTestAccount(u));
   }
+  // Sort managers alphabetically by username
+  managers.sort((a, b) => (a.username || '').localeCompare(b.username || ''));
   console.log('Available managers:', managers);
   signupManager.innerHTML = '<option value="">-- No Manager --</option>';
   managers.forEach(m => {
