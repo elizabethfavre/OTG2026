@@ -1033,7 +1033,10 @@ onAuthStateChanged(async (user) => {
     loadChecklistState(displayUser.id);
     addTaskContainer.classList.remove('hidden');
   } else {
-    // When viewing another user, load their checklist state but disable editing
+    // When viewing another user's dashboard:
+    // - Load their checklist state (if supervisor has permission, changes will sync)
+    // - Don't disable checkboxes - let canModifyChecklist() handle permission checks
+    // - Hide add task container unless supervisor has permission
     const raw = localStorage.getItem(getChecklistKey(displayUser.id));
     if (raw) {
       try {
@@ -1046,10 +1049,12 @@ onAuthStateChanged(async (user) => {
         console.warn('Invalid checklist state', error);
       }
     }
-    checklist.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-      cb.disabled = true;
-    });
-    addTaskContainer.classList.add('hidden');
+    // Show/hide add task container based on permissions
+    if (canModifyChecklist()) {
+      addTaskContainer.classList.remove('hidden');
+    } else {
+      addTaskContainer.classList.add('hidden');
+    }
   }
 
   updateChecklistSummary();
