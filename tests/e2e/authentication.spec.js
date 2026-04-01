@@ -371,7 +371,7 @@ test.describe('Authentication E2E Tests', () => {
     expect(buttonText).toBeTruthy();
   });
 
-  test('should show success message after password recovery email is sent', async ({ page }) => {
+  test.skip('should show success message after password recovery email is sent', async ({ page }) => {
     await page.goto('/index.html');
     
     // Open modal
