@@ -457,11 +457,64 @@ app.get('/api/users/role/:role', async (req, res) => {
 /**
  * PUT /api/users/:uid
  * Update user data
+ * Authorization: Only managers can change managerId/mentorId of their direct reports
  */
 app.put('/api/users/:uid', async (req, res) => {
   try {
-    const { username, role, managerId, mentorId, timezone } = req.body;
+    const { username, role, managerId, mentorId, timezone, currentUserId } = req.body;
+    const targetUid = req.params.uid;
 
+    // Check if attempting to update managerId or mentorId
+    const isUpdatingAssignments = managerId !== undefined || mentorId !== undefined;
+
+    if (isUpdatingAssignments && currentUserId) {
+      // Authorization check for assignment updates
+      // Get the current user making the request
+      const updaterDoc = await db.collection('users').doc(currentUserId).get();
+      if (!updaterDoc.exists) {
+        return res.status(401).json({ error: 'Current user not found' });
+      }
+      
+      const updater = updaterDoc.data();
+
+      // Only managers can update assignments
+      if (updater.role !== 'manager') {
+        return res.status(403).json({ error: 'Only managers can update employee assignments' });
+      }
+
+      // Get the target user
+      const targetDoc = await db.collection('users').doc(targetUid).get();
+      if (!targetDoc.exists) {
+        return res.status(404).json({ error: 'Target user not found' });
+      }
+
+      const target = targetDoc.data();
+
+      // Manager can only update their own direct reports (employees with role 'new_team_member')
+      if (target.managerId !== currentUserId || target.role !== 'new_team_member') {
+        return res.status(403).json({ error: 'You can only update assignments for your own direct reports' });
+      }
+
+      // Validate new manager is a valid manager
+      if (managerId !== null) {
+        const newManagerDoc = await db.collection('users').doc(managerId).get();
+        if (!newManagerDoc.exists || newManagerDoc.data().role !== 'manager' || newManagerDoc.data().isActive === false) {
+          return res.status(400).json({ error: 'Invalid manager selection' });
+        }
+      }
+
+      // Validate new mentor is a valid mentor
+      if (mentorId !== null) {
+        const newMentorDoc = await db.collection('users').doc(mentorId).get();
+        if (!newMentorDoc.exists || newMentorDoc.data().role !== 'mentor' || newMentorDoc.data().isActive === false) {
+          return res.status(400).json({ error: 'Invalid mentor selection' });
+        }
+      }
+
+      console.log(`[AUTHORIZATION] Manager ${currentUserId} updating assignments for employee ${targetUid}: managerId=${managerId}, mentorId=${mentorId}`);
+    }
+
+    // Build update data
     const updateData = {};
     if (username) updateData.username = username;
     if (role) updateData.role = role;
@@ -471,7 +524,7 @@ app.put('/api/users/:uid', async (req, res) => {
 
     updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
-    await db.collection('users').doc(req.params.uid).update(updateData);
+    await db.collection('users').doc(targetUid).update(updateData);
 
     res.json({ message: 'User updated successfully' });
   } catch (error) {

@@ -438,15 +438,22 @@ function displayNewMemberTeam() {
 
   newMemberTile.classList.remove('hidden');
   
+  // Check if current user is a manager viewing their own employee
+  const isManagerViewingEmployee = currentUser.role === 'manager' && displayUser.id !== currentUser.uid && displayUser.managerId === currentUser.uid;
+  
   // Display manager
   const manager = displayUser.managerId ? allUsers.find(u => u.id === displayUser.managerId) : null;
   if (manager) {
     managerInfo.innerHTML = `
       <strong>${manager.username}</strong>
       <p>Manager</p>
+      ${isManagerViewingEmployee ? '<button class="edit-btn" onclick="editEmployeeManager()">Change Manager</button>' : ''}
     `;
   } else {
     managerInfo.innerHTML = '<p class="intro">No manager assigned.</p>';
+    if (isManagerViewingEmployee) {
+      managerInfo.innerHTML += '<button class="edit-btn" onclick="editEmployeeManager()">Assign Manager</button>';
+    }
   }
 
   // Display mentor
@@ -455,9 +462,108 @@ function displayNewMemberTeam() {
     mentorInfo.innerHTML = `
       <strong>${mentor.username}</strong>
       <p>Mentor</p>
+      ${isManagerViewingEmployee ? '<button class="edit-btn" onclick="editEmployeeMentor()">Change Mentor</button>' : ''}
     `;
   } else {
     mentorInfo.innerHTML = '<p class="intro">No mentor assigned.</p>';
+    if (isManagerViewingEmployee) {
+      mentorInfo.innerHTML += '<button class="edit-btn" onclick="editEmployeeMentor()">Assign Mentor</button>';
+    }
+  }
+}
+
+async function editEmployeeManager() {
+  // Only managers can edit
+  if (currentUser.role !== 'manager') {
+    alert('Only managers can change employee assignments.');
+    return;
+  }
+
+  // Build dropdown of available managers
+  const managers = allUsers.filter(u => u.role === 'manager' && u.isActive !== false);
+  managers.sort((a, b) => (a.username || '').localeCompare(b.username || ''));
+  
+  let optionsHTML = '<option value="">-- No Manager --</option>';
+  managers.forEach(m => {
+    const selected = m.id === displayUser.managerId ? ' selected' : '';
+    optionsHTML += `<option value="${m.id}"${selected}>${m.username}</option>`;
+  });
+
+  const newManagerId = prompt('Select new manager:\n\n(This will be shown as a dropdown in a real implementation)\n\nCurrent managers:\n' + managers.map(m => `${m.username} (${m.id})`).join('\n'));
+  
+  if (newManagerId !== null) {
+    // Find the manager object
+    const selectedManager = managers.find(m => m.id === newManagerId) || null;
+    if (!selectedManager && newManagerId !== '') {
+      alert('Invalid manager selection');
+      return;
+    }
+
+    await updateEmployeeAssignment(displayUser.id, newManagerId || null, displayUser.mentorId);
+  }
+}
+
+async function editEmployeeMentor() {
+  // Only managers can edit
+  if (currentUser.role !== 'manager') {
+    alert('Only managers can change employee assignments.');
+    return;
+  }
+
+  // Build dropdown of available mentors
+  const mentors = allUsers.filter(u => u.role === 'mentor' && u.isActive !== false);
+  mentors.sort((a, b) => (a.username || '').localeCompare(b.username || ''));
+  
+  let optionsHTML = '<option value="">-- No Mentor --</option>';
+  mentors.forEach(m => {
+    const selected = m.id === displayUser.mentorId ? ' selected' : '';
+    optionsHTML += `<option value="${m.id}"${selected}>${m.username}</option>`;
+  });
+
+  const newMentorId = prompt('Select new mentor:\n\n(This will be shown as a dropdown in a real implementation)\n\nCurrent mentors:\n' + mentors.map(m => `${m.username} (${m.id})`).join('\n'));
+  
+  if (newMentorId !== null) {
+    // Find the mentor object
+    const selectedMentor = mentors.find(m => m.id === newMentorId) || null;
+    if (!selectedMentor && newMentorId !== '') {
+      alert('Invalid mentor selection');
+      return;
+    }
+
+    await updateEmployeeAssignment(displayUser.id, displayUser.managerId, newMentorId || null);
+  }
+}
+
+async function updateEmployeeAssignment(employeeId, newManagerId, newMentorId) {
+  try {
+    console.log('[DEBUG] Updating employee assignment:', { employeeId, newManagerId, newMentorId, currentUserId: currentUser.uid });
+    
+    const response = await fetch(`http://localhost:3000/api/users/${employeeId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        managerId: newManagerId,
+        mentorId: newMentorId,
+        currentUserId: currentUser.uid
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to update employee assignment');
+    }
+
+    alert('Employee assignment updated successfully!');
+    
+    // Update local displayUser to reflect changes
+    displayUser.managerId = newManagerId;
+    displayUser.mentorId = newMentorId;
+    
+    // Refresh the display
+    displayNewMemberTeam();
+  } catch (error) {
+    console.error('[ERROR] Update assignment error:', error);
+    alert(`Failed to update assignment: ${error.message}`);
   }
 }
 
