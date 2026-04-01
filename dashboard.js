@@ -784,20 +784,18 @@ locationSearch.addEventListener('blur', () => {
 });
 
 checklist.addEventListener('change', (e) => {
-  console.log('[CHECKBOX CHANGE] Event triggered, calling canModifyChecklist()');
   // Check if current user has permission to modify this checklist
   if (!canModifyChecklist()) {
     // Prevent the change from persisting
     const checkbox = e.target;
     if (checkbox.type === 'checkbox') {
-      console.warn('[CHECKBOX CHANGE] Permission DENIED - reverting change');
+      console.warn('[WARNING] Attempt to modify checklist without permission prevented');
       // Revert the change
       checkbox.checked = !checkbox.checked;
       alert('You do not have permission to modify this checklist.');
       return;
     }
   }
-  console.log('[CHECKBOX CHANGE] Permission granted - saving state');
   updateChecklistSummary();
   resetInactivityTimer();
 });
@@ -824,18 +822,8 @@ checklist.addEventListener('click', (e) => {
 });
 
 function canModifyChecklist() {
-  console.log('[DEBUG] canModifyChecklist called with:', {
-    currentUserUid: currentUser?.uid,
-    currentUserRole: currentUser?.role,
-    displayUserUid: displayUser?.id,
-    displayUserRole: displayUser?.role,
-    displayUserManagerId: displayUser?.managerId,
-    displayUserMentorId: displayUser?.mentorId
-  });
-  
   // Can modify own dashboard
   if (currentUser?.uid && displayUser && displayUser.id === currentUser.uid) {
-    console.log('[SUCCESS] Owner access granted - it\'s your own dashboard');
     return true;
   }
   
@@ -845,10 +833,7 @@ function canModifyChecklist() {
   const managerMatch = displayUser?.managerId === currentUser?.uid;
   
   if (isManager && displayIsNewTeamMember && managerMatch) {
-    console.log('[SUCCESS] Manager access granted - you are the manager');
     return true;
-  } else if (isManager) {
-    console.log('[DENIED] Manager check failed:', { isManager, displayIsNewTeamMember, managerMatch });
   }
   
   // Mentor can modify their mentees
@@ -856,13 +841,9 @@ function canModifyChecklist() {
   const mentorMatch = displayUser?.mentorId === currentUser?.uid;
   
   if (isMentor && displayIsNewTeamMember && mentorMatch) {
-    console.log('[SUCCESS] Mentor access granted - you are the mentor');
     return true;
-  } else if (isMentor) {
-    console.log('[DENIED] Mentor check failed:', { isMentor, displayIsNewTeamMember, mentorMatch });
   }
   
-  console.log('[DENIED] No permission match found');
   return false;
 }
 
@@ -967,12 +948,14 @@ onAuthStateChanged(async (user) => {
   // Determine which user's dashboard to display
   const urlParams = new URLSearchParams(window.location.search);
   const viewUid = urlParams.get('view');
+  console.log('[DEBUG] URL view parameter:', viewUid);
 
   displayUser = currentUser;
   
   if (viewUid && viewUid !== currentUser.uid) {
     console.log('[DEBUG] Attempting to view user:', viewUid);
     const requestedUser = getUserByUIDLocal(viewUid);
+    console.log('[DEBUG] Requested user lookup result:', requestedUser ? `Found: ${requestedUser.username}` : 'NOT FOUND');
     
     if (requestedUser) {
       // Check if current user has permission to view this user
