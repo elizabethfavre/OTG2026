@@ -969,12 +969,10 @@ onAuthStateChanged(async (user) => {
   const viewUid = urlParams.get('view');
 
   displayUser = currentUser;
-  console.log('[DEBUG] Initial displayUser set to currentUser:', { uid: currentUser.uid, role: currentUser.role });
   
   if (viewUid && viewUid !== currentUser.uid) {
-    console.log('[DEBUG] Viewing another user, viewUid:', viewUid);
+    console.log('[DEBUG] Attempting to view user:', viewUid);
     const requestedUser = getUserByUIDLocal(viewUid);
-    console.log('[DEBUG] Requested user found:', requestedUser ? { uid: requestedUser.id, role: requestedUser.role, managerId: requestedUser.managerId, mentorId: requestedUser.mentorId } : 'NOT FOUND');
     
     if (requestedUser) {
       // Check if current user has permission to view this user
@@ -982,23 +980,16 @@ onAuthStateChanged(async (user) => {
       const mentees = getMenteesByMentor(currentUser.uid);
       const newEmployees = getNewEmployeesManagedByManager(currentUser.uid);
       
-      console.log('[DEBUG] Permission check details:', {
-        currentRole: currentUser.role,
-        directReports: directReports.map(r => ({ id: r.id, username: r.username })),
-        mentees: mentees.map(m => ({ id: m.id, username: m.username })),
-        newEmployees: newEmployees.map(e => ({ id: e.id, username: e.username }))
-      });
-      
       const canView = 
         (currentUser.role === 'manager' && directReports.some(r => r.id === viewUid)) ||
         (currentUser.role === 'mentor' && mentees.some(r => r.id === viewUid)) ||
         (currentUser.role === 'manager' && requestedUser.role === 'mentor' && newEmployees.some(emp => emp.mentorId === viewUid));
       
-      console.log('[DEBUG] canView result:', canView);
+      console.log('[DEBUG] Permission check - canView:', canView, '| currentRole:', currentUser.role, '| requestedUserRole:', requestedUser.role);
       
       if (canView) {
         displayUser = requestedUser;
-        console.log('[DEBUG] Permission granted, displayUser set to:', { uid: displayUser.id, role: displayUser.role, managerId: displayUser.managerId, mentorId: displayUser.mentorId });
+        console.log('[DEBUG] Permission granted - viewing user:', displayUser.username);
         // Add a navigation/options header section
         const dashboardGrid = document.querySelector('.dashboard-grid');
         const navContainer = document.createElement('div');
