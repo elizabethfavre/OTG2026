@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 const API_URL = 'https://otg2026.onrender.com/api';
 
 const testUsers = [
@@ -15,24 +13,39 @@ async function createTestUsers() {
   
   for (const user of testUsers) {
     try {
+      console.log(`Attempting to create: ${user.email}`);
       const response = await fetch(`${API_URL}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user)
+      }).catch(err => {
+        console.log(`  Fetch error: ${err.message}`);
+        throw err;
       });
 
+      console.log(`  Response status: ${response.status}`);
+      
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseErr) {
+        console.log(`  JSON parse error: ${parseErr.message}`);
+        data = { error: 'Could not parse response' };
+      }
+      
       if (response.ok) {
-        console.log(`✅ Created: ${user.email}`);
+        console.log(`✅ Created: ${user.email}\n`);
+      } else if (response.status === 409) {
+        console.log(`ℹ️  ${user.email}: Already exists\n`);
       } else {
-        const error = await response.json();
-        console.log(`⚠️  ${user.email}: ${error.error}`);
+        console.log(`⚠️  ${user.email}: ${data.error || response.statusText}\n`);
       }
     } catch (error) {
-      console.log(`❌ ${user.email}: ${error.message}`);
+      console.log(`❌ ${user.email}: ${error.message}\n`);
     }
   }
 
-  console.log('\nDone! Test users created.');
+  console.log('Done! Test users processed.');
 }
 
 createTestUsers();

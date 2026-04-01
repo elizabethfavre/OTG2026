@@ -99,7 +99,9 @@ app.post('/api/auth/signup', async (req, res) => {
       uid: userRecord.uid,
       email: userRecord.email,
       username,
-      role
+      role,
+      managerId: managerId || null,
+      mentorId: mentorId || null
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -195,7 +197,9 @@ app.post('/api/auth/login', async (req, res) => {
       uid: userId,
       email: userData.email,
       username: userData.username,
-      role: userData.role
+      role: userData.role,
+      managerId: userData.managerId || null,
+      mentorId: userData.mentorId || null
     });
   } catch (error) {
     console.error('Login error:', error);
