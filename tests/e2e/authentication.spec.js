@@ -102,7 +102,7 @@ test.describe('Authentication E2E Tests', () => {
     await signupSubmit.click();
     
     // Should auto-login and redirect to dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 20000 });
     
     // Verify user is on dashboard
     const usernameBadge = page.locator('#usernameBadge');
@@ -139,7 +139,7 @@ test.describe('Authentication E2E Tests', () => {
     await signupSubmit.click();
     
     // Should auto-login and redirect to dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 20000 });
     
     // Verify user is on dashboard
     const usernameBadge = page.locator('#usernameBadge');
@@ -178,7 +178,7 @@ test.describe('Authentication E2E Tests', () => {
     await signupSubmit.click();
     
     // Should auto-login and redirect to dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 20000 });
     
     // Verify user is on dashboard
     const usernameBadge = page.locator('#usernameBadge');

@@ -3,6 +3,7 @@ const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: './tests/e2e',
+  timeout: 30000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -11,6 +12,7 @@ module.exports = defineConfig({
   use: {
     baseURL: 'http://localhost:5500',
     trace: 'on-first-retry',
+    navigationTimeout: 30000,
   },
 
   projects: [

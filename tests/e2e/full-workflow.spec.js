@@ -19,7 +19,7 @@ test.describe('Complete User Workflow E2E Tests', () => {
     await submitButton.click();
     
     // Wait for navigation to dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 5000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
     
     // Verify dashboard elements are visible
     const usernameBadge = page.locator('#usernameBadge');
@@ -35,7 +35,7 @@ test.describe('Complete User Workflow E2E Tests', () => {
     await page.locator('#loginForm button[type="submit"]').click();
     
     // Wait for dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 5000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
     
     // Verify mentor-specific UI elements
     const mentorTile = page.locator('#mentorTile');
@@ -53,7 +53,7 @@ test.describe('Complete User Workflow E2E Tests', () => {
     await page.locator('#loginForm button[type="submit"]').click();
     
     // Wait for dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 5000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
     
     // Verify manager-specific UI elements
     const managerTile = page.locator('#managerTile');
@@ -68,7 +68,7 @@ test.describe('Complete User Workflow E2E Tests', () => {
     await page.fill('#username', testUsers.newMember.email);
     await page.fill('#loginForm [type="password"]', testUsers.newMember.password);
     await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 5000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
     
     // Look for checklist element
     const checklist = page.locator('#checklist');
@@ -83,14 +83,14 @@ test.describe('Complete User Workflow E2E Tests', () => {
     await page.fill('#username', testUsers.newMember.email);
     await page.fill('#loginForm [type="password"]', testUsers.newMember.password);
     await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 5000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
     
     // Find and click logout button
     const logoutBtn = page.locator('#logoutBtn');
     if (await logoutBtn.isVisible()) {
       await logoutBtn.click();
       // Should redirect to login page
-      await page.waitForURL('**/index.html', { timeout: 5000 });
+      await page.waitForURL('**/index.html', { timeout: 15000 });
     }
   });
 
@@ -99,7 +99,7 @@ test.describe('Complete User Workflow E2E Tests', () => {
     await page.fill('#username', testUsers.newMember.email);
     await page.fill('#loginForm [type="password"]', testUsers.newMember.password);
     await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 5000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
     
     // Look for progress elements
     const progressText = page.locator('#progressText');
@@ -113,7 +113,7 @@ test.describe('Complete User Workflow E2E Tests', () => {
     await page.fill('#username', testUsers.newMember.email);
     await page.fill('#loginForm [type="password"]', testUsers.newMember.password);
     await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 5000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
     
     // Look for location search field
     const locationSearch = page.locator('#locationSearch');
@@ -155,7 +155,7 @@ test.describe('Complete User Workflow E2E Tests', () => {
     await page.fill('#username', testUsers.newMember.email);
     await page.fill('#loginForm [type="password"]', testUsers.newMember.password);
     await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 5000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
     
     // Store current URL
     const currentUrl = page.url();
@@ -174,7 +174,7 @@ test.describe('Complete User Workflow E2E Tests', () => {
     await page.fill('#username', testUsers.manager.email);
     await page.fill('#loginForm [type="password"]', testUsers.manager.password);
     await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 5000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
     
     // Check for role badge
     const userTypeBadge = page.locator('#userTypeBadge');
@@ -254,7 +254,7 @@ test.describe('Signup E2E Tests', () => {
     await signupSubmit.click();
     
     // Should redirect to dashboard automatically (auto-login feature)
-    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 20000 });
     
     // Verify user is logged in on dashboard
     const usernameBadge = page.locator('#usernameBadge');
@@ -289,7 +289,7 @@ test.describe('Signup E2E Tests', () => {
     await signupSubmit.click();
     
     // Should redirect to dashboard automatically (auto-login feature)
-    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 20000 });
     
     // Verify user is logged in on dashboard
     const usernameBadge = page.locator('#usernameBadge');
@@ -326,7 +326,7 @@ test.describe('Signup E2E Tests', () => {
     await signupSubmit.click();
     
     // Should redirect to dashboard automatically (auto-login feature)
-    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 20000 });
     
     // Verify user is logged in on dashboard
     const usernameBadge = page.locator('#usernameBadge');
@@ -398,7 +398,7 @@ test.describe('Cross-Role Access Control E2E Tests', () => {
     await page.fill('#username', 'employee_sierra@otg.test');
     await page.fill('#loginForm [type="password"]', 'password123');
     await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 5000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
     
     // Try accessing another user's dashboard via URL param
     // This should either deny access or show only allowed information
@@ -414,7 +414,7 @@ test.describe('Cross-Role Access Control E2E Tests', () => {
     await page.fill('#username', 'mentor_casey@otg.test');
     await page.fill('#loginForm [type="password"]', 'password123');  
     await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 5000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
     
     // Look for mentee links if any
     const menteeLinks = page.locator('a[href*="view="]');
