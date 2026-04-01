@@ -282,16 +282,80 @@ function updateChecklistSummary() {
   saveChecklistState();
 }
 
-function logoutAndRedirect(message) {
-  backendSignOut();
-  sessionStorage.removeItem('app_session_user');
-  localStorage.clear();
-  if (message) {
-    alert(message);
+async function syncChecklistChangesToBackend() {
+  try {
+    // Save all unsaved checklist changes to backend before logout
+    if (!currentUser?.uid) return true; // No user to save for
+    if (!displayUser || displayUser.id !== currentUser.uid) return true; // Not on own dashboard
+    
+    console.log('[DEBUG] Syncing checklist changes to backend before logout...');
+    
+    // Get current checkbox states
+    const items = checklist.querySelectorAll('li');
+    const currentState = [...items].map(li => {
+      const checkbox = li.querySelector('input[type="checkbox"]');
+      return checkbox ? checkbox.checked : false;
+    });
+    
+    // Get saved state to find what changed
+    const raw = localStorage.getItem(getChecklistKey(currentUser.uid));
+    const savedState = raw ? JSON.parse(raw) : [];
+    
+    // Send updates for any changed items
+    let syncPromises = [];
+    currentState.forEach((isChecked, idx) => {
+      // Only update if state changed from what was saved
+      if (idx < savedState.length && savedState[idx] !== isChecked) {
+        console.log(`[DEBUG] Syncing task ${idx}: checked=${isChecked}`);
+        syncPromises.push(updateChecklistTask(currentUser.uid, idx, isChecked).catch(err => {
+          console.error(`Error syncing task ${idx}:`, err);
+          // Continue even if one sync fails
+          return true;
+        }));
+      }
+    });
+    
+    // Wait for all syncs to complete
+    if (syncPromises.length > 0) {
+      await Promise.all(syncPromises);
+      console.log('[DEBUG] All checklist changes synced to backend');
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('[ERROR] Failed to sync checklist changes:', error);
+    // Don't throw - allow logout to proceed even if sync fails
+    return true;
   }
-  setTimeout(() => {
-    window.location.href = 'index.html';
-  }, 500);
+}
+
+async function logoutAndRedirect(message) {
+  try {
+    // Sync any unsaved changes before logging out
+    console.log('[DEBUG] Preparing to logout, syncing changes first...');
+    await syncChecklistChangesToBackend();
+    
+    // Clear session
+    await backendSignOut();
+    sessionStorage.removeItem('app_session_user');
+    localStorage.clear();
+    
+    if (message) {
+      alert(message);
+    }
+    
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 500);
+  } catch (error) {
+    console.error('[ERROR] Logout error:', error);
+    // Force logout anyway
+    localStorage.clear();
+    sessionStorage.clear();
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 500);
+  }
 }
 
 function formatTimeForTimezone(timezone) {
@@ -677,7 +741,7 @@ function resetInactivityTimer() {
 });
 
 logoutBtn.addEventListener('click', () => {
-  logoutAndRedirect();
+  logoutAndRedirect('Your session has ended. See you next time!');
 });
 
 locationSearch.addEventListener('input', (e) => {
