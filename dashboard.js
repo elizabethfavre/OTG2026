@@ -219,16 +219,18 @@ function setChecklistItems(role, uid) {
   checklist.innerHTML = html;
 }
 
+function getDefaultTaskCountForRole(role) {
+  const defaultTasks = ROLE_CHECKLIST[role] || ROLE_CHECKLIST.new_team_member;
+  return defaultTasks.length;
+}
+
 function saveChecklistState() {
   // Only save if we're on our own dashboard
   if (!currentUser?.uid) return;
   if (!displayUser || displayUser.id !== currentUser.uid) return;
   
-  const items = checklist.querySelectorAll('li');
-  const state = [...items].map(li => {
-    const checkbox = li.querySelector('input[type="checkbox"]');
-    return checkbox ? checkbox.checked : false;
-  });
+  const checkboxes = checklist.querySelectorAll('input[type="checkbox"]');
+  const state = [...checkboxes].map(cb => cb.checked);
   localStorage.setItem(getChecklistKey(currentUser.uid), JSON.stringify(state));
 }
 
@@ -295,11 +297,8 @@ async function syncChecklistChangesToBackend() {
     console.log('[DEBUG] Syncing checklist changes to backend before logout...');
     
     // Get current checkbox states
-    const items = checklist.querySelectorAll('li');
-    const currentState = [...items].map(li => {
-      const checkbox = li.querySelector('input[type="checkbox"]');
-      return checkbox ? checkbox.checked : false;
-    });
+    const checkboxes = checklist.querySelectorAll('input[type="checkbox"]');
+    const currentState = [...checkboxes].map(cb => cb.checked);
     
     // Get saved state to find what changed
     const raw = localStorage.getItem(getChecklistKey(displayUser.id));
@@ -809,11 +808,13 @@ checklist.addEventListener('click', (e) => {
     const idx = parseInt(e.target.dataset.idx, 10);
     if (uid && idx >= 0) {
       const previousState = [...checklist.querySelectorAll('input[type="checkbox"]')].map(cb => cb.checked);
+      const defaultTaskCount = getDefaultTaskCountForRole(displayUser.role);
+      const removedCheckboxIndex = defaultTaskCount + idx;
       deleteCustomTask(uid, idx);
       // Rebuild checklist and preserve checkbox state for remaining items.
       setChecklistItems(displayUser.role, displayUser.id);
       const checkboxes = checklist.querySelectorAll('input[type="checkbox"]');
-      const nextState = previousState.filter((_, index) => index !== idx);
+      const nextState = previousState.filter((_, index) => index !== removedCheckboxIndex);
       checkboxes.forEach((cb, index) => {
         if (typeof nextState[index] === 'boolean') cb.checked = nextState[index];
       });
