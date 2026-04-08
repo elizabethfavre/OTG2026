@@ -932,25 +932,36 @@ onAuthStateChanged(async (user) => {
   currentUser = user;
   sessionStorage.setItem('app_session_user', JSON.stringify({ uid: user.uid, email: user.email, username: user.username, role: user.role }));
 
-  // Load all users for the app in the background (non-blocking)
-  console.log('[DEBUG] Dashboard: Loading users from API in background...');
-  loadAllUsersFromFirebase()
-    .then(() => {
-      console.log('[DEBUG] Dashboard: Users loaded successfully:', allUsers.length, 'users');
-      // Team tiles depend on allUsers; re-render once async user data is ready.
-      displayNewMemberTeam();
-      displayMentorTeam();
-      displayManagerTeam();
-    })
-    .catch(err => {
-      console.error('[ERROR] Dashboard: Failed to load users:', err);
-    });
-
   // Determine which user's dashboard to display
   const urlParams = new URLSearchParams(window.location.search);
   const viewUid = urlParams.get('view');
 
   displayUser = currentUser;
+
+  if (viewUid && viewUid !== currentUser.uid) {
+    // Reportee views require allUsers for permission checks and user resolution.
+    console.log('[DEBUG] Dashboard: view parameter detected, loading users before resolving view...');
+    try {
+      await loadAllUsersFromFirebase();
+      console.log('[DEBUG] Dashboard: Users loaded successfully for view resolution:', allUsers.length, 'users');
+    } catch (err) {
+      console.error('[ERROR] Dashboard: Failed to load users for view resolution:', err);
+    }
+  } else {
+    // Non-view dashboards can load users in the background.
+    console.log('[DEBUG] Dashboard: Loading users from API in background...');
+    loadAllUsersFromFirebase()
+      .then(() => {
+        console.log('[DEBUG] Dashboard: Users loaded successfully:', allUsers.length, 'users');
+        // Team tiles depend on allUsers; re-render once async user data is ready.
+        displayNewMemberTeam();
+        displayMentorTeam();
+        displayManagerTeam();
+      })
+      .catch(err => {
+        console.error('[ERROR] Dashboard: Failed to load users:', err);
+      });
+  }
   
   if (viewUid && viewUid !== currentUser.uid) {
     const requestedUser = getUserByUIDLocal(viewUid);
