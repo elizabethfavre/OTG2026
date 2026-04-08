@@ -105,7 +105,7 @@ test.describe('Dashboard After Auto-Login from Signup', () => {
     await signupSubmit.click();
     
     // Should redirect to dashboard after auto-login
-    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 45000 });
     
     // Verify dashboard loaded
     const usernameBadge = page.locator('#usernameBadge');
@@ -137,7 +137,7 @@ test.describe('Dashboard After Auto-Login from Signup', () => {
     await signupSubmit.click();
     
     // Wait for dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 45000 });
     
     // Check for onboarding elements or welcome message
     const body = page.locator('body');
@@ -164,7 +164,7 @@ test.describe('Dashboard After Auto-Login from Signup', () => {
     await signupSubmit.click();
     
     // Wait for dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 45000 });
     
     // Look for checklist element
     const checklist = page.locator('#checklist');
@@ -201,7 +201,7 @@ test.describe('Dashboard After Auto-Login from Signup', () => {
     await signupSubmit.click();
     
     // Wait for dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 45000 });
     
     const dashboardUrl = page.url();
     
@@ -236,7 +236,7 @@ test.describe('Dashboard After Auto-Login from Signup', () => {
     await signupSubmit.click();
     
     // Wait for dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 45000 });
     
     // Verify dashboard is showing
     const body = page.locator('body');
@@ -269,7 +269,7 @@ test.describe('Dashboard After Auto-Login from Signup', () => {
     await signupSubmit.click();
     
     // Wait for dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 10000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 45000 });
     
     // Verify dashboard loaded
     const body = page.locator('body');

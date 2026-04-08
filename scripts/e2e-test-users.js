@@ -1,43 +1,49 @@
 #!/usr/bin/env node
 
 import https from 'https';
+import fs from 'fs';
+import path from 'path';
 
 const RAW_API_BASE = process.env.OTG_API_BASE || 'https://otg2026.onrender.com/api';
 const API_BASE = RAW_API_BASE.endsWith('/') ? RAW_API_BASE : `${RAW_API_BASE}/`;
 const TEST_PASSWORD = process.env.E2E_TEST_PASSWORD || 'TestPass#2026!';
+const STATE_FILE = path.join(process.cwd(), 'tests', 'e2e', '.test-users.json');
 
-export const E2E_TEST_USERS = {
-  manager: {
-    username: 'manager_test_alex',
-    email: 'manager_test_alex@otg.test',
-    password: TEST_PASSWORD,
-    role: 'manager'
-  },
-  mentorPrimary: {
-    username: 'mentor_test_casey',
-    email: 'mentor_test_casey@otg.test',
-    password: TEST_PASSWORD,
-    role: 'mentor'
-  },
-  mentorSecondary: {
-    username: 'mentor_test_dash',
-    email: 'mentor_test_dash@otg.test',
-    password: TEST_PASSWORD,
-    role: 'mentor'
-  },
-  employeePrimary: {
-    username: 'employee_test_sierra',
-    email: 'employee_test_sierra@otg.test',
-    password: TEST_PASSWORD,
-    role: 'new_team_member'
-  },
-  employeeReassign: {
-    username: 'employee_test_reassign',
-    email: 'employee_test_reassign@otg.test',
-    password: TEST_PASSWORD,
-    role: 'new_team_member'
-  }
-};
+function buildE2ETestUsers() {
+  const runId = Date.now();
+  return {
+    manager: {
+      username: `manager_test_alex_${runId}`,
+      email: `manager_test_alex_${runId}@otg.test`,
+      password: TEST_PASSWORD,
+      role: 'manager'
+    },
+    mentorPrimary: {
+      username: `mentor_test_casey_${runId}`,
+      email: `mentor_test_casey_${runId}@otg.test`,
+      password: TEST_PASSWORD,
+      role: 'mentor'
+    },
+    mentorSecondary: {
+      username: `mentor_test_dash_${runId}`,
+      email: `mentor_test_dash_${runId}@otg.test`,
+      password: TEST_PASSWORD,
+      role: 'mentor'
+    },
+    employeePrimary: {
+      username: `employee_test_sierra_${runId}`,
+      email: `employee_test_sierra_${runId}@otg.test`,
+      password: TEST_PASSWORD,
+      role: 'new_team_member'
+    },
+    employeeReassign: {
+      username: `employee_test_reassign_${runId}`,
+      email: `employee_test_reassign_${runId}@otg.test`,
+      password: TEST_PASSWORD,
+      role: 'new_team_member'
+    }
+  };
+}
 
 function httpRequest(method, path, payload = null) {
   return new Promise((resolve, reject) => {
@@ -157,6 +163,8 @@ export async function createBaselineTestUsers() {
   // Ensure clean test namespace first.
   await cleanupTestUsers();
 
+  const E2E_TEST_USERS = buildE2ETestUsers();
+
   const created = {};
 
   const manager = await apiSignUp(E2E_TEST_USERS.manager);
@@ -188,6 +196,15 @@ export async function createBaselineTestUsers() {
   });
   created.employeeReassign = employeeReassign;
 
+  const statePayload = {
+    manager: { email: E2E_TEST_USERS.manager.email, password: TEST_PASSWORD, username: E2E_TEST_USERS.manager.username },
+    mentorPrimary: { email: E2E_TEST_USERS.mentorPrimary.email, password: TEST_PASSWORD, username: E2E_TEST_USERS.mentorPrimary.username },
+    mentorSecondary: { email: E2E_TEST_USERS.mentorSecondary.email, password: TEST_PASSWORD, username: E2E_TEST_USERS.mentorSecondary.username },
+    employeePrimary: { email: E2E_TEST_USERS.employeePrimary.email, password: TEST_PASSWORD, username: E2E_TEST_USERS.employeePrimary.username },
+    employeeReassign: { email: E2E_TEST_USERS.employeeReassign.email, password: TEST_PASSWORD, username: E2E_TEST_USERS.employeeReassign.username }
+  };
+  fs.writeFileSync(STATE_FILE, JSON.stringify(statePayload, null, 2), 'utf8');
+
   return created;
 }
 
@@ -201,6 +218,9 @@ if (process.argv[1] && process.argv[1].endsWith('e2e-test-users.js')) {
     } else if (mode === 'cleanup-test') {
       const count = await cleanupTestUsers();
       console.log(`Deleted test users: ${count}`);
+      if (fs.existsSync(STATE_FILE)) {
+        fs.unlinkSync(STATE_FILE);
+      }
     } else if (mode === 'setup-test') {
       await createBaselineTestUsers();
       console.log('Created baseline test users successfully.');

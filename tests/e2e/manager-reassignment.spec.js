@@ -1,12 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { getE2ETestUsers } from './test-users.js';
+
+const seededUsers = getE2ETestUsers();
 
 test.describe('Manager Reassignment E2E Tests', () => {
   // Test users - manager and new employee
   const testUsers = {
-    manager: { email: 'manager_test_alex@otg.test', password: 'TestPass#2026!' },
-    oldMentor: { email: 'mentor_test_casey@otg.test', password: 'TestPass#2026!' },
-    newMentor: { email: 'mentor_test_dash@otg.test', password: 'TestPass#2026!' },
-    newEmployee: { email: 'employee_test_reassign@otg.test', password: 'TestPass#2026!' }
+    manager: { email: seededUsers.manager.email, password: seededUsers.manager.password },
+    oldMentor: { email: seededUsers.mentorPrimary.email, password: seededUsers.mentorPrimary.password },
+    newMentor: { email: seededUsers.mentorSecondary.email, password: seededUsers.mentorSecondary.password },
+    newEmployee: { email: seededUsers.employeeReassign.email, password: seededUsers.employeeReassign.password }
   };
 
   // Helper function for login
@@ -34,7 +37,7 @@ test.describe('Manager Reassignment E2E Tests', () => {
     await submitButton.click();
     
     // Wait for dashboard navigation
-    await page.waitForURL('**/dashboard.html', { timeout: 20000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 45000 });
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
   }
@@ -94,7 +97,7 @@ test.describe('Manager Reassignment E2E Tests', () => {
   test('Authorization check: Non-manager cannot update employee assignments', async ({ page }) => {
     // Test API directly - mentor trying to update not their mentee
     const response = await page.request.put(
-      'http://localhost:3000/api/users/someEmployeeId',
+      'https://otg2026.onrender.com/api/users/someEmployeeId',
       {
         data: {
           managerId: 'someNewManagerId',
@@ -112,7 +115,7 @@ test.describe('Manager Reassignment E2E Tests', () => {
   test('Backend returns error for invalid manager selection', async ({ page }) => {
     // Test API directly - invalid manager ID
     const response = await page.request.put(
-      'http://localhost:3000/api/users/validEmployeeId',
+      'https://otg2026.onrender.com/api/users/validEmployeeId',
       {
         data: {
           managerId: 'nonExistentManagerId',

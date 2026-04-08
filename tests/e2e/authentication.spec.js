@@ -1,4 +1,7 @@
 import { test, expect } from '@playwright/test';
+import { getE2ETestUsers } from './test-users.js';
+
+const seededUsers = getE2ETestUsers();
 
 test.describe('Authentication E2E Tests', () => {
   // Helper function for login with explicit waits
@@ -26,7 +29,7 @@ test.describe('Authentication E2E Tests', () => {
     await submitButton.click();
     
     // Wait for dashboard navigation or error
-    await page.waitForURL('**/dashboard.html', { timeout: 20000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 45000 });
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
   }
@@ -74,7 +77,7 @@ test.describe('Authentication E2E Tests', () => {
     await submitButton.click();
     
     // Wait for dashboard (auto-login)
-    await page.waitForURL('**/dashboard.html', { timeout: 25000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 45000 });
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
   }
@@ -99,8 +102,8 @@ test.describe('Authentication E2E Tests', () => {
 
   test('should login with valid credentials', async ({ page }) => {
     // Fill login form with valid test credentials
-    await page.fill('#username', 'manager_test_alex@otg.test');
-    await page.fill('#loginForm [type="password"]', 'TestPass#2026!');
+    await page.fill('#username', seededUsers.manager.email);
+    await page.fill('#loginForm [type="password"]', seededUsers.manager.password);
     
     // Submit form
     const submitButton = page.locator('#loginForm button[type="submit"]');
@@ -201,7 +204,7 @@ test.describe('Authentication E2E Tests', () => {
     await signupSubmit.click();
     
     // Should auto-login and redirect to dashboard
-    await page.waitForURL('**/dashboard.html', { timeout: 20000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 45000 });
     
     // Verify user is on dashboard
     const usernameBadge = page.locator('#usernameBadge');
@@ -244,7 +247,7 @@ test.describe('Authentication E2E Tests', () => {
     await expect(signupForm).toBeVisible();
     
     await page.fill('#signupUsername', 'testuser');
-    await page.fill('#signupEmail', 'manager.alex@otg.test'); // Assuming this might exist
+    await page.fill('#signupEmail', seededUsers.manager.email); // Seeded manager exists → tests duplicate detection
     await page.fill('#signupPassword', 'password123');
     
     const roleSelect = page.locator('#signupRole');

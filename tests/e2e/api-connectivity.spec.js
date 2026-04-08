@@ -1,4 +1,7 @@
 import { test, expect } from '@playwright/test';
+import { getE2ETestUsers } from './test-users.js';
+
+const seededUsers = getE2ETestUsers();
 
 test.describe('API Connectivity Tests', () => {
   test('should verify backend API is accessible', async ({ page }) => {
@@ -40,15 +43,13 @@ test.describe('API Connectivity Tests', () => {
     await page.goto('/index.html');
     
     // Test the login API from page context
-    const loginResponse = await page.evaluate(async () => {
+    // Pass credentials as argument since seededUsers is not available in the browser context
+    const loginResponse = await page.evaluate(async ({ email, password }) => {
       try {
         const response = await fetch('https://otg2026.onrender.com/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: 'manager_test_alex@otg.test',
-            password: 'TestPass#2026!'
-          })
+          body: JSON.stringify({ email, password })
         });
         
         const data = await response.json();
@@ -65,7 +66,7 @@ test.describe('API Connectivity Tests', () => {
           message: error.message
         };
       }
-    });
+    }, { email: seededUsers.manager.email, password: seededUsers.manager.password });
     
     console.log('Login API Response:', loginResponse);
     

@@ -5,16 +5,16 @@ module.exports = defineConfig({
   testDir: './tests/e2e',
   globalSetup: './tests/e2e/global-setup.cjs',
   globalTeardown: './tests/e2e/global-teardown.cjs',
-  timeout: 30000,
+  timeout: 45000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 2 : 1,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:5500',
+    baseURL: 'https://otg2026.onrender.com',
     trace: 'on-first-retry',
-    navigationTimeout: 30000,
+    navigationTimeout: 45000,
     // Handle HTTPS/external API calls (needed for backend API on Render)
     ignoreHTTPSErrors: true,
   },
@@ -42,10 +42,4 @@ module.exports = defineConfig({
       },
     },
   ],
-
-  webServer: {
-    command: 'npx http-server -p 5500 -c-1',
-    url: 'http://localhost:5500',
-    reuseExistingServer: !process.env.CI,
-  },
 });

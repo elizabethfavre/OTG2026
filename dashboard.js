@@ -808,11 +808,15 @@ checklist.addEventListener('click', (e) => {
     const uid = e.target.dataset.uid;
     const idx = parseInt(e.target.dataset.idx, 10);
     if (uid && idx >= 0) {
+      const previousState = [...checklist.querySelectorAll('input[type="checkbox"]')].map(cb => cb.checked);
       deleteCustomTask(uid, idx);
-      // Rebuild checklist and save fresh checkbox state
+      // Rebuild checklist and preserve checkbox state for remaining items.
       setChecklistItems(displayUser.role, displayUser.id);
-      // Clear the old checkbox state to avoid state mismatch
-      localStorage.removeItem(getChecklistKey(displayUser.id));
+      const checkboxes = checklist.querySelectorAll('input[type="checkbox"]');
+      const nextState = previousState.filter((_, index) => index !== idx);
+      checkboxes.forEach((cb, index) => {
+        if (typeof nextState[index] === 'boolean') cb.checked = nextState[index];
+      });
       updateChecklistSummary();
     }
   }
@@ -824,17 +828,18 @@ function canModifyChecklist() {
     return true;
   }
   
-  // Manager can modify direct reports (new_team_members)
+  // Manager can modify direct reports (mentors and new team members).
   const isManager = currentUser?.role === 'manager';
-  const displayIsNewTeamMember = displayUser?.role === 'new_team_member';
+  const displayIsManagerReport = displayUser?.role === 'new_team_member' || displayUser?.role === 'mentor';
   const managerMatch = displayUser?.managerId === currentUser?.uid;
   
-  if (isManager && displayIsNewTeamMember && managerMatch) {
+  if (isManager && displayIsManagerReport && managerMatch) {
     return true;
   }
   
   // Mentor can modify their mentees
   const isMentor = currentUser?.role === 'mentor';
+  const displayIsNewTeamMember = displayUser?.role === 'new_team_member';
   const mentorMatch = displayUser?.mentorId === currentUser?.uid;
   
   if (isMentor && displayIsNewTeamMember && mentorMatch) {
@@ -870,11 +875,19 @@ function submitAddTask() {
     return;
   }
   
+  const previousState = [...checklist.querySelectorAll('input[type="checkbox"]')].map(cb => cb.checked);
+
   addCustomTask(displayUser.id, desc);
   closeAddTaskModal();
   setChecklistItems(displayUser.role, displayUser.id);
-  // Clear stale checkbox state to avoid mismatch with new task list
-  localStorage.removeItem(getChecklistKey(displayUser.id));
+
+  const checkboxes = checklist.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach((cb, index) => {
+    if (typeof previousState[index] === 'boolean') {
+      cb.checked = previousState[index];
+    }
+  });
+
   updateChecklistSummary();
 }
 

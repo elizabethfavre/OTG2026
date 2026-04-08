@@ -1,15 +1,18 @@
 import { test } from '@playwright/test';
+import { getE2ETestUsers } from './test-users.js';
+
+const seededUsers = getE2ETestUsers();
 
 test('verify which test credentials work', async ({ page }) => {
   await page.goto('/index.html');
   
   // Test credentials we created
   const credentialsToTest = [
-    { email: 'manager_test_alex@otg.test', password: 'TestPass#2026!', name: 'Test User - manager_test_alex' },
-    { email: 'mentor_test_casey@otg.test', password: 'TestPass#2026!', name: 'Test User - mentor_test_casey' },
-    { email: 'employee_test_sierra@otg.test', password: 'TestPass#2026!', name: 'Test User - employee_test_sierra' },
-    { email: 'mentor_test_dash@otg.test', password: 'TestPass#2026!', name: 'Test User - mentor_test_dash' },
-    { email: 'employee_test_reassign@otg.test', password: 'TestPass#2026!', name: 'Test User - employee_test_reassign' },
+    { email: seededUsers.manager.email, password: seededUsers.manager.password, name: 'Test User - seeded manager' },
+    { email: seededUsers.mentorPrimary.email, password: seededUsers.mentorPrimary.password, name: 'Test User - seeded mentor primary' },
+    { email: seededUsers.employeePrimary.email, password: seededUsers.employeePrimary.password, name: 'Test User - seeded employee primary' },
+    { email: seededUsers.mentorSecondary.email, password: seededUsers.mentorSecondary.password, name: 'Test User - seeded mentor secondary' },
+    { email: seededUsers.employeeReassign.email, password: seededUsers.employeeReassign.password, name: 'Test User - seeded employee reassign' },
   ];
   
   for (const cred of credentialsToTest) {

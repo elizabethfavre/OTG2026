@@ -1,10 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { getE2ETestUsers } from './test-users.js';
+
+const seededUsers = getE2ETestUsers();
 
 test.describe('Complete User Workflow E2E Tests', () => {
   const testUsers = {
-    newMember: { email: 'employee_test_sierra@otg.test', password: 'TestPass#2026!' },
-    mentor: { email: 'mentor_test_casey@otg.test', password: 'TestPass#2026!' },
-    manager: { email: 'manager_test_alex@otg.test', password: 'TestPass#2026!' }
+    newMember: { email: seededUsers.employeePrimary.email, password: seededUsers.employeePrimary.password },
+    mentor: { email: seededUsers.mentorPrimary.email, password: seededUsers.mentorPrimary.password },
+    manager: { email: seededUsers.manager.email, password: seededUsers.manager.password }
   };
 
   // Helper function for login with explicit waits
@@ -32,7 +35,7 @@ test.describe('Complete User Workflow E2E Tests', () => {
     await submitButton.click();
     
     // Wait for dashboard navigation
-    await page.waitForURL('**/dashboard.html', { timeout: 20000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 45000 });
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
   }
@@ -80,7 +83,7 @@ test.describe('Complete User Workflow E2E Tests', () => {
     await submitButton.click();
     
     // Wait for dashboard (auto-login)
-    await page.waitForURL('**/dashboard.html', { timeout: 25000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 45000 });
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
   }
@@ -127,7 +130,7 @@ test.describe('Complete User Workflow E2E Tests', () => {
     if (await logoutBtn.isVisible({ timeout: 5000 })) {
       await logoutBtn.click();
       // Should redirect to login page
-      await page.waitForURL('**/index.html', { timeout: 15000 });
+      await page.waitForURL('**/index.html', { timeout: 45000 });
     }
   });
 
@@ -361,10 +364,10 @@ test.describe('Cross-Role Access Control E2E Tests', () => {
     // This test would require attempting to access another user's dashboard while logged in
     await page.goto('/index.html');
     // Login as employee
-    await page.fill('#username', 'employee_test_sierra@otg.test');
-    await page.fill('#loginForm [type="password"]', 'TestPass#2026!');
+    await page.fill('#username', seededUsers.employeePrimary.email);
+    await page.fill('#loginForm [type="password"]', seededUsers.employeePrimary.password);
     await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 45000 });
     
     // Try accessing another user's dashboard via URL param
     // This should either deny access or show only allowed information
@@ -377,10 +380,10 @@ test.describe('Cross-Role Access Control E2E Tests', () => {
   test('should allow mentor to view mentee dashboard', async ({ page }) => {
     // Mentor should be able to click through to view assigned mentee
     await page.goto('/index.html');
-    await page.fill('#username', 'mentor_test_casey@otg.test');
-    await page.fill('#loginForm [type="password"]', 'TestPass#2026!');  
+    await page.fill('#username', seededUsers.mentorPrimary.email);
+    await page.fill('#loginForm [type="password"]', seededUsers.mentorPrimary.password);  
     await page.locator('#loginForm button[type="submit"]').click();
-    await page.waitForURL('**/dashboard.html', { timeout: 15000 });
+    await page.waitForURL('**/dashboard.html', { timeout: 45000 });
     
     // Look for mentee links if any
     const menteeLinks = page.locator('a[href*="view="]');

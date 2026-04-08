@@ -1,7 +1,10 @@
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { getE2ETestUsers } from './test-users.js';
+
+const seededUsers = getE2ETestUsers();
 
 test('Debug: Try logging in and check for errors', async ({ page }) => {
-  await page.goto('http://localhost:5500');
+  await page.goto('/index.html');
   await page.waitForLoadState('networkidle');
   
   // Capture all network responses
@@ -21,8 +24,8 @@ test('Debug: Try logging in and check for errors', async ({ page }) => {
   page.on('error', err => console.log(`[error] ${err}`));
   
   // Fill login form
-  await page.fill('#username', 'manager_test_alex@otg.test');
-  await page.fill('#loginForm [type="password"]', 'TestPass#2026!');
+  await page.fill('#username', seededUsers.manager.email);
+  await page.fill('#loginForm [type="password"]', seededUsers.manager.password);
   
   // Submit form
   const submitButton = page.locator('#loginForm button[type="submit"]');
