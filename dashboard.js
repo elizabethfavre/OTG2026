@@ -937,6 +937,10 @@ onAuthStateChanged(async (user) => {
   loadAllUsersFromFirebase()
     .then(() => {
       console.log('[DEBUG] Dashboard: Users loaded successfully:', allUsers.length, 'users');
+      // Team tiles depend on allUsers; re-render once async user data is ready.
+      displayNewMemberTeam();
+      displayMentorTeam();
+      displayManagerTeam();
     })
     .catch(err => {
       console.error('[ERROR] Dashboard: Failed to load users:', err);
