@@ -240,7 +240,7 @@ function saveChecklistState() {
   
   const checkboxes = checklist.querySelectorAll('input[type="checkbox"]');
   const state = [...checkboxes].map(cb => cb.checked);
-  localStorage.setItem(getChecklistKey(currentUser.uid), JSON.stringify(state));
+  localStorage.setItem(getChecklistKey(displayUserId), JSON.stringify(state));
 }
 
 function loadChecklistState(uid) {
