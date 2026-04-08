@@ -14,7 +14,8 @@ test('find valid test users in backend', async ({ page }) => {
         return { error: `Status ${res.status}` };
       }
       
-      return await res.json();
+      const payload = await res.json();
+      return Array.isArray(payload) ? payload : (payload.users || []);
     } catch (error) {
       return { error: error.message };
     }

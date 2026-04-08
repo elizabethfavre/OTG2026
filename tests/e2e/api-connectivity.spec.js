@@ -46,8 +46,8 @@ test.describe('API Connectivity Tests', () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email: 'manager_alex@otg.test',
-            password: 'password123'
+            email: 'manager_test_alex@otg.test',
+            password: 'TestPass#2026!'
           })
         });
         

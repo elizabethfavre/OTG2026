@@ -8,6 +8,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "users:reset": "node scripts/e2e-test-users.js reset-all",
+    "test:e2e:setup-users": "node scripts/e2e-test-users.js setup-test",
+    "test:e2e:cleanup-users": "node scripts/e2e-test-users.js cleanup-test",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug"

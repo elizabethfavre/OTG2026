@@ -188,7 +188,22 @@ npm run test:e2e:ui
 
 # Debug E2E tests
 npm run test:e2e:debug
+
+# Reset all active backend users (soft-delete)
+npm run users:reset
+
+# Create baseline E2E test users manually
+npm run test:e2e:setup-users
+
+# Remove E2E test users manually
+npm run test:e2e:cleanup-users
 ```
+
+#### E2E Test User Policy
+
+- E2E tests now auto-create required users before the suite and auto-clean them after completion.
+- Test users must include the word "test" in username or email.
+- Baseline test accounts are created under the otg.test domain and removed from backend after test runs.
 
 #### Test Structure
 

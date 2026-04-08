@@ -21,8 +21,8 @@ test('Debug: Try logging in and check for errors', async ({ page }) => {
   page.on('error', err => console.log(`[error] ${err}`));
   
   // Fill login form
-  await page.fill('#username', 'alex.manager@company.com');
-  await page.fill('#loginForm [type="password"]', 'MgrAlex#2026!');
+  await page.fill('#username', 'manager_test_alex@otg.test');
+  await page.fill('#loginForm [type="password"]', 'TestPass#2026!');
   
   // Submit form
   const submitButton = page.locator('#loginForm button[type="submit"]');

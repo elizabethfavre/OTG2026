@@ -3,10 +3,10 @@ import { test, expect } from '@playwright/test';
 test.describe('Manager Reassignment E2E Tests', () => {
   // Test users - manager and new employee
   const testUsers = {
-    manager: { email: 'alex.manager@company.com', password: 'MgrAlex#2026!' },
-    oldMentor: { email: 'casey.mentor@company.com', password: 'MentorCasey#2026!' },
-    newMentor: { email: 'mentor_dash@company.com', password: 'TestDash#2026!' },
-    newEmployee: { email: 'emp_reassign@company.com', password: 'EmpReassign#2026!' }
+    manager: { email: 'manager_test_alex@otg.test', password: 'TestPass#2026!' },
+    oldMentor: { email: 'mentor_test_casey@otg.test', password: 'TestPass#2026!' },
+    newMentor: { email: 'mentor_test_dash@otg.test', password: 'TestPass#2026!' },
+    newEmployee: { email: 'employee_test_reassign@otg.test', password: 'TestPass#2026!' }
   };
 
   // Helper function for login

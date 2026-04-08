@@ -42,14 +42,18 @@ async function main() {
   const result = await getUsers();
   console.log(`Status: ${result.status}\n`);
   
-  if (Array.isArray(result.data)) {
-    console.log(`✅ Found ${result.data.length} users:\n`);
-    result.data.forEach(user => {
+  const users = Array.isArray(result.data)
+    ? result.data
+    : (result.data?.users || []);
+
+  if (Array.isArray(users)) {
+    console.log(`✅ Found ${users.length} users:\n`);
+    users.forEach(user => {
       console.log(`- ${user.username} (${user.role}) - ${user.email}`);
     });
     
     // Look for Alice
-    const alice = result.data.find(u => u.username?.toLowerCase().includes('alice') || u.email?.toLowerCase().includes('alice'));
+    const alice = users.find(u => u.username?.toLowerCase().includes('alice') || u.email?.toLowerCase().includes('alice'));
     if (alice) {
       console.log(`\n🎯 FOUND ALICE:`);
       console.log(`   Username: ${alice.username}`);

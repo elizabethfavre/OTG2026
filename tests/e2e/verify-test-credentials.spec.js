@@ -5,12 +5,11 @@ test('verify which test credentials work', async ({ page }) => {
   
   // Test credentials we created
   const credentialsToTest = [
-    { email: 'manager_alex@otg.test', password: 'password123', name: 'Test User - manager_alex' },
-    { email: 'mentor_casey@otg.test', password: 'password123', name: 'Test User - mentor_casey' },
-    { email: 'employee_sierra@otg.test', password: 'password123', name: 'Test User - employee_sierra' },
-    // Also try the credentials from firebase-init.js as fallback
-    { email: 'alex.manager@company.com', password: 'MgrAlex#2026!', name: 'Firebase-init - manager_alex' },
-    { email: 'casey.mentor@company.com', password: 'MentorCasey#2026!', name: 'Firebase-init - mentor_casey' },
+    { email: 'manager_test_alex@otg.test', password: 'TestPass#2026!', name: 'Test User - manager_test_alex' },
+    { email: 'mentor_test_casey@otg.test', password: 'TestPass#2026!', name: 'Test User - mentor_test_casey' },
+    { email: 'employee_test_sierra@otg.test', password: 'TestPass#2026!', name: 'Test User - employee_test_sierra' },
+    { email: 'mentor_test_dash@otg.test', password: 'TestPass#2026!', name: 'Test User - mentor_test_dash' },
+    { email: 'employee_test_reassign@otg.test', password: 'TestPass#2026!', name: 'Test User - employee_test_reassign' },
   ];
   
   for (const cred of credentialsToTest) {

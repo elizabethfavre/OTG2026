@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Complete User Workflow E2E Tests', () => {
   const testUsers = {
-    newMember: { email: 'sierra.emp@company.com', password: 'EmpSierra#2026!' },
-    mentor: { email: 'casey.mentor@company.com', password: 'MentorCasey#2026!' },
-    manager: { email: 'alex.manager@company.com', password: 'MgrAlex#2026!' }
+    newMember: { email: 'employee_test_sierra@otg.test', password: 'TestPass#2026!' },
+    mentor: { email: 'mentor_test_casey@otg.test', password: 'TestPass#2026!' },
+    manager: { email: 'manager_test_alex@otg.test', password: 'TestPass#2026!' }
   };
 
   // Helper function for login with explicit waits
@@ -361,8 +361,8 @@ test.describe('Cross-Role Access Control E2E Tests', () => {
     // This test would require attempting to access another user's dashboard while logged in
     await page.goto('/index.html');
     // Login as employee
-    await page.fill('#username', 'employee_sierra@otg.test');
-    await page.fill('#loginForm [type="password"]', 'password123');
+    await page.fill('#username', 'employee_test_sierra@otg.test');
+    await page.fill('#loginForm [type="password"]', 'TestPass#2026!');
     await page.locator('#loginForm button[type="submit"]').click();
     await page.waitForURL('**/dashboard.html', { timeout: 15000 });
     
@@ -377,8 +377,8 @@ test.describe('Cross-Role Access Control E2E Tests', () => {
   test('should allow mentor to view mentee dashboard', async ({ page }) => {
     // Mentor should be able to click through to view assigned mentee
     await page.goto('/index.html');
-    await page.fill('#username', 'mentor_casey@otg.test');
-    await page.fill('#loginForm [type="password"]', 'password123');  
+    await page.fill('#username', 'mentor_test_casey@otg.test');
+    await page.fill('#loginForm [type="password"]', 'TestPass#2026!');  
     await page.locator('#loginForm button[type="submit"]').click();
     await page.waitForURL('**/dashboard.html', { timeout: 15000 });
     
