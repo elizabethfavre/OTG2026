@@ -156,12 +156,10 @@ function isCurrentUserTestUser() {
 }
 
 async function populateSupervisors() {
-  // Load all users if not already loaded
-  if (allUsers.length === 0) {
-    console.log('Loading users from Firestore for supervisors dropdown...');
-    allUsers = await getAllUsers();
-    console.log('Loaded users:', allUsers);
-  }
+  // Always reload users so newly created managers/mentors appear immediately.
+  console.log('Loading fresh users for supervisors dropdown...');
+  allUsers = await getAllUsers();
+  console.log('Loaded users:', allUsers);
 
   // Determine if current user is a test user - if so, show all mentors; otherwise hide test accounts
   const hideTestAccounts = !isCurrentUserTestUser();
