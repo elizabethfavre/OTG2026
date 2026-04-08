@@ -118,6 +118,10 @@ function getChecklistKey(uid) {
   return `${STORAGE_KEYS.checklistPrefix}${uid}`;
 }
 
+function getUserId(user) {
+  return user?.id || user?.uid || null;
+}
+
 async function loadAllUsersFromFirebase() {
   try {
     allUsers = await getAllUsers();
@@ -183,8 +187,9 @@ function addCustomTask(uid, taskDescription) {
 
 function deleteTaskAndRefresh(uid, taskIndex) {
   deleteCustomTask(uid, taskIndex);
-  setChecklistItems(displayUser.role, displayUser.id);
-  loadChecklistState(displayUser.id);
+  const displayUserId = getUserId(displayUser);
+  setChecklistItems(displayUser.role, displayUserId);
+  loadChecklistState(displayUserId);
   updateChecklistSummary();
 }
 
@@ -225,9 +230,13 @@ function getDefaultTaskCountForRole(role) {
 }
 
 function saveChecklistState() {
-  // Only save if we're on our own dashboard
+  // Save only when the current user is allowed to modify this checklist.
   if (!currentUser?.uid) return;
-  if (!displayUser || displayUser.id !== currentUser.uid) return;
+  if (!displayUser) return;
+  if (!canModifyChecklist()) return;
+
+  const displayUserId = getUserId(displayUser);
+  if (!displayUserId) return;
   
   const checkboxes = checklist.querySelectorAll('input[type="checkbox"]');
   const state = [...checkboxes].map(cb => cb.checked);
@@ -301,7 +310,10 @@ async function syncChecklistChangesToBackend() {
     const currentState = [...checkboxes].map(cb => cb.checked);
     
     // Get saved state to find what changed
-    const raw = localStorage.getItem(getChecklistKey(displayUser.id));
+    const displayUserId = getUserId(displayUser);
+    if (!displayUserId) return true;
+
+    const raw = localStorage.getItem(getChecklistKey(displayUserId));
     const savedState = raw ? JSON.parse(raw) : [];
     
     console.log('[DEBUG] Current state:', currentState.length, 'items');
@@ -320,7 +332,7 @@ async function syncChecklistChangesToBackend() {
         changedCount++;
         console.log(`[DEBUG] Syncing task ${idx}: was=${wasSaved}, now=${isChecked}`);
         syncPromises.push(
-          updateChecklistTask(displayUser.id, idx, isChecked)
+          updateChecklistTask(displayUserId, idx, isChecked)
             .then(result => {
               console.log(`[DEBUG] Task ${idx} sync response:`, result);
               return result;
@@ -360,7 +372,6 @@ async function logoutAndRedirect(message) {
     // Clear session
     await backendSignOut();
     sessionStorage.removeItem('app_session_user');
-    localStorage.clear();
     
     if (message) {
       alert(message);
@@ -372,7 +383,6 @@ async function logoutAndRedirect(message) {
   } catch (error) {
     console.error('[ERROR] Logout error:', error);
     // Force logout anyway
-    localStorage.clear();
     sessionStorage.clear();
     setTimeout(() => {
       window.location.href = 'index.html';
@@ -568,25 +578,25 @@ async function editEmployeeManager() {
   // Build dropdown of available managers
   const managers = allUsers.filter(u => u.role === 'manager' && u.isActive !== false);
   managers.sort((a, b) => (a.username || '').localeCompare(b.username || ''));
-  
-  let optionsHTML = '<option value="">-- No Manager --</option>';
-  managers.forEach(m => {
-    const selected = m.id === displayUser.managerId ? ' selected' : '';
-    optionsHTML += `<option value="${m.id}"${selected}>${m.username}</option>`;
+
+  const selection = await openAssignmentSelector({
+    title: 'Change Manager',
+    label: 'Assign manager',
+    noneLabel: '-- No Manager --',
+    options: managers,
+    selectedId: displayUser.managerId || ''
   });
 
-  const newManagerId = prompt('Select new manager:\n\n(This will be shown as a dropdown in a real implementation)\n\nCurrent managers:\n' + managers.map(m => `${m.username} (${m.id})`).join('\n'));
-  
-  if (newManagerId !== null) {
-    // Find the manager object
-    const selectedManager = managers.find(m => m.id === newManagerId) || null;
-    if (!selectedManager && newManagerId !== '') {
-      alert('Invalid manager selection');
-      return;
-    }
+  if (!selection || selection.cancelled) return;
 
-    await updateEmployeeAssignment(displayUser.id, newManagerId || null, displayUser.mentorId);
+  const newManagerId = selection.value || null;
+  const selectedManager = managers.find(m => m.id === newManagerId) || null;
+  if (!selectedManager && newManagerId !== null) {
+    alert('Invalid manager selection');
+    return;
   }
+
+  await updateEmployeeAssignment(displayUser.id, newManagerId, displayUser.mentorId);
 }
 
 async function editEmployeeMentor() {
@@ -599,26 +609,114 @@ async function editEmployeeMentor() {
   // Build dropdown of available mentors
   const mentors = allUsers.filter(u => u.role === 'mentor' && u.isActive !== false);
   mentors.sort((a, b) => (a.username || '').localeCompare(b.username || ''));
-  
-  let optionsHTML = '<option value="">-- No Mentor --</option>';
-  mentors.forEach(m => {
-    const selected = m.id === displayUser.mentorId ? ' selected' : '';
-    optionsHTML += `<option value="${m.id}"${selected}>${m.username}</option>`;
+
+  const selection = await openAssignmentSelector({
+    title: 'Change Mentor',
+    label: 'Assign mentor',
+    noneLabel: '-- No Mentor --',
+    options: mentors,
+    selectedId: displayUser.mentorId || ''
   });
 
-  const newMentorId = prompt('Select new mentor:\n\n(This will be shown as a dropdown in a real implementation)\n\nCurrent mentors:\n' + mentors.map(m => `${m.username} (${m.id})`).join('\n'));
-  
-  if (newMentorId !== null) {
-    // Find the mentor object
-    const selectedMentor = mentors.find(m => m.id === newMentorId) || null;
-    if (!selectedMentor && newMentorId !== '') {
-      alert('Invalid mentor selection');
-      return;
+  if (!selection || selection.cancelled) return;
+
+  const newMentorId = selection.value || null;
+  const selectedMentor = mentors.find(m => m.id === newMentorId) || null;
+  if (!selectedMentor && newMentorId !== null) {
+    alert('Invalid mentor selection');
+    return;
+  }
+
+  await updateEmployeeAssignment(displayUser.id, displayUser.managerId, newMentorId);
+}
+
+function openAssignmentSelector({ title, label, noneLabel, options, selectedId }) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = [
+      'position: fixed',
+      'inset: 0',
+      'background: rgba(0, 0, 0, 0.45)',
+      'display: flex',
+      'align-items: center',
+      'justify-content: center',
+      'z-index: 3000',
+      'padding: 1rem'
+    ].join(';');
+
+    const modal = document.createElement('div');
+    modal.style.cssText = [
+      'background: #fff',
+      'border-radius: 12px',
+      'padding: 1rem',
+      'width: min(480px, 96vw)',
+      'box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22)'
+    ].join(';');
+
+    const heading = document.createElement('h3');
+    heading.textContent = title;
+    heading.style.cssText = 'margin: 0 0 0.75rem 0; color: #004054;';
+
+    const fieldLabel = document.createElement('label');
+    fieldLabel.textContent = label;
+    fieldLabel.style.cssText = 'display: block; margin: 0 0 0.4rem 0; color: #004054; font-weight: 600;';
+
+    const select = document.createElement('select');
+    select.style.cssText = 'width: 100%; padding: 0.6rem; border: 1px solid #B7CDC8; border-radius: 8px; margin-bottom: 1rem;';
+
+    const noneOption = document.createElement('option');
+    noneOption.value = '';
+    noneOption.textContent = noneLabel;
+    select.appendChild(noneOption);
+
+    options.forEach((item) => {
+      const option = document.createElement('option');
+      option.value = item.id;
+      option.textContent = item.username || item.email || item.id;
+      select.appendChild(option);
+    });
+
+    select.value = selectedId || '';
+
+    const buttonRow = document.createElement('div');
+    buttonRow.style.cssText = 'display: flex; justify-content: flex-end; gap: 0.6rem;';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.style.cssText = 'padding: 0.55rem 0.9rem; border-radius: 8px; border: 1px solid #B7CDC8; background: #fff; color: #004054; cursor: pointer;';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.textContent = 'Save';
+    saveBtn.style.cssText = 'padding: 0.55rem 0.9rem; border-radius: 8px; border: none; background: #1C61DC; color: #fff; cursor: pointer;';
+
+    function close(result) {
+      overlay.remove();
+      resolve(result);
     }
 
-    await updateEmployeeAssignment(displayUser.id, displayUser.managerId, newMentorId || null);
-  }
+    cancelBtn.addEventListener('click', () => close({ cancelled: true }));
+    saveBtn.addEventListener('click', () => close({ cancelled: false, value: select.value }));
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) close({ cancelled: true });
+    });
+
+    modal.appendChild(heading);
+    modal.appendChild(fieldLabel);
+    modal.appendChild(select);
+    buttonRow.appendChild(cancelBtn);
+    buttonRow.appendChild(saveBtn);
+    modal.appendChild(buttonRow);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    select.focus();
+  });
 }
+
+window.editEmployeeManager = editEmployeeManager;
+window.editEmployeeMentor = editEmployeeMentor;
 
 async function updateEmployeeAssignment(employeeId, newManagerId, newMentorId) {
   try {
@@ -812,7 +910,7 @@ checklist.addEventListener('click', (e) => {
       const removedCheckboxIndex = defaultTaskCount + idx;
       deleteCustomTask(uid, idx);
       // Rebuild checklist and preserve checkbox state for remaining items.
-      setChecklistItems(displayUser.role, displayUser.id);
+      setChecklistItems(displayUser.role, getUserId(displayUser));
       const checkboxes = checklist.querySelectorAll('input[type="checkbox"]');
       const nextState = previousState.filter((_, index) => index !== removedCheckboxIndex);
       checkboxes.forEach((cb, index) => {
@@ -825,7 +923,7 @@ checklist.addEventListener('click', (e) => {
 
 function canModifyChecklist() {
   // Can modify own dashboard
-  if (currentUser?.uid && displayUser && displayUser.id === currentUser.uid) {
+  if (currentUser?.uid && displayUser && getUserId(displayUser) === currentUser.uid) {
     return true;
   }
   
@@ -877,10 +975,15 @@ function submitAddTask() {
   }
   
   const previousState = [...checklist.querySelectorAll('input[type="checkbox"]')].map(cb => cb.checked);
+  const displayUserId = getUserId(displayUser);
+  if (!displayUserId) {
+    alert('Unable to determine user id for this checklist. Please refresh and try again.');
+    return;
+  }
 
-  addCustomTask(displayUser.id, desc);
+  addCustomTask(displayUserId, desc);
   closeAddTaskModal();
-  setChecklistItems(displayUser.role, displayUser.id);
+  setChecklistItems(displayUser.role, displayUserId);
 
   const checkboxes = checklist.querySelectorAll('input[type="checkbox"]');
   checkboxes.forEach((cb, index) => {
@@ -1012,9 +1115,10 @@ onAuthStateChanged(async (user) => {
   }
 
   const displayRole = displayUser.role ? displayUser.role.replace(/_/g, ' ') : 'new team member';
+  const displayUserId = getUserId(displayUser);
 
   // Display username and user type in badge
-  if (displayUser.id === currentUser.uid) {
+  if (displayUserId === currentUser.uid) {
     usernameBadge.textContent = displayUser.username;
     userTypeBadge.textContent = displayRole;
   } else {
@@ -1025,16 +1129,16 @@ onAuthStateChanged(async (user) => {
   }
 
   // Set up checklist
-  setChecklistItems(displayUser.role, displayUser.id);
-  if (displayUser.id === currentUser.uid) {
-    loadChecklistState(displayUser.id);
+  setChecklistItems(displayUser.role, displayUserId);
+  if (displayUserId === currentUser.uid) {
+    loadChecklistState(displayUserId);
     addTaskContainer.classList.remove('hidden');
   } else {
     // When viewing another user's dashboard:
     // - Load their checklist state (if supervisor has permission, changes will sync)
     // - Don't disable checkboxes - let canModifyChecklist() handle permission checks
     // - Hide add task container unless supervisor has permission
-    const raw = localStorage.getItem(getChecklistKey(displayUser.id));
+    const raw = displayUserId ? localStorage.getItem(getChecklistKey(displayUserId)) : null;
     if (raw) {
       try {
         const state = JSON.parse(raw);
