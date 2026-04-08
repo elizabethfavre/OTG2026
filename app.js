@@ -84,11 +84,9 @@ loginForm.addEventListener('submit', async (event) => {
     if (result.success) {
       console.log('[DEBUG] Login successful, redirecting to dashboard...');
       // Auth state listener will handle navigation
-      setTimeout(() => {
-        const dashboardPath = window.location.origin + '/dashboard.html';
-        console.log('[DEBUG] Navigating to:', dashboardPath);
-        window.location.href = '/dashboard.html';
-      }, 500);
+      const dashboardPath = window.location.origin + '/dashboard.html';
+      console.log('[DEBUG] Navigating to:', dashboardPath);
+      window.location.href = '/dashboard.html';
     } else {
       console.error('[ERROR] Login failed:', result.message);
       loginError.textContent = result.message || 'Login failed.';

@@ -96,16 +96,19 @@ export async function backendSignOut() {
 
 // ============= USER FUNCTIONS =============
 
-export async function getAllUsers() {
+export async function getAllUsers(limit = 100, offset = 0) {
   try {
-    const response = await fetch(`${API_BASE_URL}/users`);
+    const url = new URL(`${API_BASE_URL}/users`);
+    url.searchParams.append('limit', limit);
+    url.searchParams.append('offset', offset);
+    const response = await fetch(url.toString());
 
     if (!response.ok) {
       throw new Error('Failed to fetch users');
     }
 
-    const users = await response.json();
-    return users;
+    const data = await response.json();
+    return data.users || [];
   } catch (error) {
     console.error('Get users error:', error);
     return [];

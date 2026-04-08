@@ -393,19 +393,30 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 
 /**
  * GET /api/users
- * Get all users (for dropdowns, etc.)
+ * Get all users (for dropdowns, etc.) with pagination support
  */
 app.get('/api/users', async (req, res) => {
   try {
+    const limit = Math.min(parseInt(req.query.limit) || 100, 500); // Max 500 per request
+    const offset = parseInt(req.query.offset) || 0;
+
     const snapshot = await db.collection('users').get();
-    const users = snapshot.docs
+    const allUsers = snapshot.docs
       .map(doc => ({
         id: doc.id,
         ...doc.data()
       }))
       .filter(user => user.isActive !== false); // Filter out deleted/inactive users
 
-    res.json(users);
+    // Apply pagination
+    const paginatedUsers = allUsers.slice(offset, offset + limit);
+
+    res.json({
+      users: paginatedUsers,
+      total: allUsers.length,
+      limit,
+      offset
+    });
   } catch (error) {
     console.error('Get users error:', error);
     res.status(500).json({ error: error.message });

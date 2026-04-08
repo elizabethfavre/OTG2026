@@ -89,19 +89,16 @@ let allUsers = [];
 
 const ROLE_CHECKLIST = {
   manager: [
-    'Review team performance metrics',
-    'Approve project plans',
-    'Schedule one-on-one meetings'
+    'Request a computer',
+    'Request timecodes'
   ],
   mentor: [
-    'Review mentee progress',
-    'Prepare coaching material',
-    'Provide weekly feedback'
+    'Invite new employee to team slack channels',
+    'Inform PM of new employee start date'
   ],
   new_team_member: [
-    'Complete onboarding checklist',
-    'Set up development environment',
-    'Meet your mentor/team lead'
+    'Set up Flare',
+    'Introduce yourself in team slack channels'
   ]
 };
 
@@ -935,15 +932,15 @@ onAuthStateChanged(async (user) => {
   currentUser = user;
   sessionStorage.setItem('app_session_user', JSON.stringify({ uid: user.uid, email: user.email, username: user.username, role: user.role }));
 
-  // Load all users for the app
-  console.log('[DEBUG] Dashboard: Loading users from API...');
-  try {
-    await loadAllUsersFromFirebase();
-    console.log('[DEBUG] Dashboard: Users loaded successfully:', allUsers.length, 'users');
-  } catch (err) {
-    console.error('[ERROR] Dashboard: Failed to load users:', err);
-    // Continue anyway - we can still show the dashboard with minimal functionality
-  }
+  // Load all users for the app in the background (non-blocking)
+  console.log('[DEBUG] Dashboard: Loading users from API in background...');
+  loadAllUsersFromFirebase()
+    .then(() => {
+      console.log('[DEBUG] Dashboard: Users loaded successfully:', allUsers.length, 'users');
+    })
+    .catch(err => {
+      console.error('[ERROR] Dashboard: Failed to load users:', err);
+    });
 
   // Determine which user's dashboard to display
   const urlParams = new URLSearchParams(window.location.search);
